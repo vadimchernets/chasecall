@@ -1,0 +1,25 @@
+{
+  "name": "chasecall",
+  "owner": {
+    "name": "Vadym Chernets"
+  },
+  "metadata": {
+    "description": "Chasecall: tasks that have to be chased stay alive between sessions - the next letter, the count of attempts, one brief a day.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "chasecall",
+      "source": "./",
+      "description": "Hand Claude Code something nobody is answering. It keeps the task between sessions, writes the next letter, counts the attempts, and tells you when the call or the payment is yours to make.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Vadym Chernets"
+      },
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/vadimchernets/chasecall",
+      "keywords": ["follow-up", "tracker", "reminders", "assistant"],
+      "category": "productivity"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "chasecall",
+  "description": "Give Claude Code a task that has to be chased - a refund, a booking, an unanswered request - and it keeps the task between sessions: it writes the next letter, counts the attempts, brings you one brief a day, and asks you to step in for the call or the payment. No keys, no accounts, nothing sent without your yes.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Vadym Chernets"
+  },
+  "homepage": "https://github.com/vadimchernets/chasecall",
+  "repository": "https://github.com/vadimchernets/chasecall",
+  "license": "Apache-2.0",
+  "keywords": ["follow-up", "tracker", "reminders", "assistant", "non-programmer"]
+}

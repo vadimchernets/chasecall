@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Chasecall: a Claude Code plugin that keeps a task alive between sessions - the next letter, the count of attempts, and the point where a person has to step in"
+version: 0.1.0
+date-released: 2026-09-24
+license: Apache-2.0
+repository-code: "https://github.com/vadimchernets/chasecall"
+keywords:
+  - claude-code-plugin
+  - follow-up
+  - persistence
+  - human-in-the-loop
+authors:
+  - family-names: Chernets
+    given-names: Vadym
+    orcid: "https://orcid.org/0009-0007-4845-3163"
+references:
+  - type: article
+    title: "After Chat: The Three Transitions Between Non-Programmers and Agentic AI"
+    authors:
+      - family-names: Chernets
+        given-names: Vadym
+    year: 2026

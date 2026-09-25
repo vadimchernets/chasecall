@@ -1,0 +1,29 @@
+{
+  "description": "Chasecall hooks. On session start, quietly show what is overdue. Before any Bash command, stop anything irreversible - sending, paying, deleting, cancelling - unless the user approved it in the last 15 minutes. Reading is never blocked.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py due --brief",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/guard.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}
