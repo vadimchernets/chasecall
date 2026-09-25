@@ -14,6 +14,10 @@ First public version.
 - A `PreToolUse` guard that stops sending, paying, deleting and cancelling unless the person approved it -
   including a file of theirs emptied by a redirection, in every form a shell accepts it: `>`, `>>`, `&>`, a
   file number in front of it (`2>`, `2>>`) and the "overwrite it anyway" form (`>|`).
+  - When what is blocked is a deletion, the refusal also asks for the two things a task already cannot be closed
+    without: what the thing was for, and whether it is unfinished rather than rubbish - a thing nothing uses is a
+    question for the person, not a verdict, and finishing it is offered before deleting it. Wording only: nothing
+    is blocked that was not blocked before, and a yes that opened a deletion still opens it.
 - The `SessionStart` hook (`tracker.py due --brief`) makes nothing. It used to open the database, so the task
   file appeared the first time a session started - before `/chasecall:setup`, whose first step is the one that
   says it makes it, and before the person had agreed to anything. With no file there is nothing to show, so it
@@ -65,5 +69,5 @@ First public version.
   written for a person in one of two languages, and anything that needs a number reads the JSON instead.
 - `README.ru.md`: the whole thing in Russian, linked from the first line of `README.md`, with the one command
   that has to be typed (`/chasecall:setup`) and the rest of the commands named as in the English one.
-- 213 automated tests (`python3 -m unittest discover -s tests`). Every guard in this list has one that goes red
+- 216 automated tests (`python3 -m unittest discover -s tests`). Every guard in this list has one that goes red
   when the guard is taken out, checked by taking each one out.

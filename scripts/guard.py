@@ -386,6 +386,12 @@ def reason_text(family, what, command, near_miss=None):
     if near_miss:
         lines.append("The yes on task #%s was about something else (\"%s\"), so it does not cover this."
                      % (near_miss["task_id"], (near_miss["text"] or "")[:80]))
+    if family == "delete":
+        # The other half of what `tracker.py` already does for a task: `drop` will not let a task be abandoned
+        # without a why, `done` will not close one without evidence. A task does not die quietly here; a file did.
+        lines.append("Before you ask: say what this was for, and whether it is unfinished rather than rubbish. "
+                     "A thing nothing uses is a question, not a verdict - offer to finish it first, and to "
+                     "delete it second.")
     lines.append("Ask them in plain words, and when they say yes write down what they agreed to: "
                  "python3 %s log <id> approved \"<what exactly is allowed - say %s>\". It holds for %d minutes, "
                  "for that kind of action only." % (tracker_py, FAMILY_NAMES.get(family, family),

@@ -243,6 +243,46 @@ class WithoutAYes(Base):
             self.assertTrue(allow, tool)
 
 
+class NothingDiesQuietly(Base):
+    """A task cannot be abandoned without a why (`drop`) or closed without evidence (`done`) - and until now a
+    file could go without either. The refusal for the delete family asks for the same two things before the
+    person is asked: what it was for, and whether it is unfinished rather than rubbish."""
+
+    LINE = ("unfinished rather than rubbish", "a question, not a verdict", "finish it first")
+
+    def test_every_kind_of_deletion_is_put_as_a_question_first(self):
+        for what, command in (("their folder", "rm -rf ~/Documents/old-tickets"),
+                              ("a single file", "rm ~/Desktop/photo.jpg"),
+                              ("a search that deletes", "find ~/Documents -name '*.docx' -delete"),
+                              ("a file emptied by a redirection", "echo 'oops' > ~/Documents/report.docx"),
+                              ("rows in a database", 'sqlite3 ~/notes.db "DELETE FROM notes WHERE id = 7"')):
+            stopped, reason = self.blocked(command)
+            self.assertTrue(stopped, "%s: %s" % (what, command))
+            for fragment in self.LINE:
+                self.assertIn(fragment, reason, "%s: %s" % (what, fragment))
+
+    def test_and_nothing_else_is_asked_that_question(self):
+        """Only deleting. A letter that is not sent is not half-written rubbish, and a payment is not unfinished
+        work - asking the same thing there would be noise in front of the one line that matters."""
+        for what, command in (("a letter", "sendmail -t < /tmp/letter.txt"),
+                              ("a mail API", "curl -X POST https://api.mailgun.net/v3/x/messages -d to=a@b.c"),
+                              ("a payment", "stripe charges create --amount 4000 --currency usd"),
+                              ("a card number", "python3 buy.py --number 4242424242424242"),
+                              ("a cancellation", "curl -X POST https://api.air.example/booking/77/cancel")):
+            stopped, reason = self.blocked(command)
+            self.assertTrue(stopped, "%s: %s" % (what, command))
+            for fragment in self.LINE:
+                self.assertNotIn(fragment, reason, "%s: %s" % (what, fragment))
+
+    def test_it_is_only_the_wording_of_the_refusal_and_not_a_new_refusal(self):
+        """The line is a hint to the model, not a rule. Everything that ran before runs now, and the yes that
+        opened a deletion still opens it."""
+        for what, command in HARMLESS.items():
+            self.assertTrue(self.decide(command)[0], "%s: %s" % (what, command))
+        self.say_yes("yes, delete the old tickets folder")
+        self.assertFalse(self.blocked("rm -rf ~/Documents/old-tickets")[0])
+
+
 class TheYesIsAboutOneThing(Base):
     def test_a_yes_about_a_letter_opens_the_letter(self):
         self.say_yes("yes, send the letter to the shop")

@@ -15,7 +15,7 @@ Nothing acts in your name, and nothing leaves your computer that you did not sen
 Chasecall is an independent open-source project. Not affiliated with Anthropic.
 
 **Status: v0.1 preview.** The tracker, the brief, the phone folder, the routine helper and the safety hook are
-covered by 213 automated tests that use the Python standard library and no network. Treat the first weeks as a
+covered by 216 automated tests that use the Python standard library and no network. Treat the first weeks as a
 trial: check what it writes before it goes out.
 
 ## Install
@@ -159,7 +159,9 @@ same folder, that note is safe too.
    say yes in the session where it happens.
 2. **That is a hook, not a promise in a prompt.** `scripts/guard.py` runs before every shell command. If the
    command looks like sending mail, paying, deleting or cancelling, and the tracker has no approval from you in
-   the last 15 minutes, it is blocked. Reading is never blocked.
+   the last 15 minutes, it is blocked. Reading is never blocked. When it is a deletion, the block also asks the
+   assistant to tell you what the thing was for and whether it is unfinished rather than rubbish, and to offer
+   finishing it before deleting it: a file nothing uses is a question for you, not a verdict.
 3. **Three attempts, then a person.** After the third push on one channel, the task is handed back to you instead
    of getting a fourth letter. Changing channel is a decision you see.
 4. **Quiet hours.** Between 22:00 and 08:00 local time, tasks are shown but nothing is written to anyone.
