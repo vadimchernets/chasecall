@@ -12,8 +12,8 @@ Nothing acts in your name, and nothing leaves your computer that you did not sen
 
 Chasecall is an independent open-source project. Not affiliated with Anthropic.
 
-**Status: v0.1 preview.** The tracker, the brief, the routine helper and the safety hook are covered by automated
-tests that use the Python standard library and no network. Treat the first weeks as a trial: check what it writes
+**Status: v0.1 preview.** The tracker, the brief, the routine helper and the safety hook are covered by 98
+automated tests that use the Python standard library and no network. Treat the first weeks as a trial: check what it writes
 before it goes out.
 
 ## Install
@@ -131,6 +131,13 @@ Say "stop looking for new things" once, and it stops.
    `CHASECALL_DB`). Delete the file and Chasecall has forgotten everything.
 7. **Letters are drafts until you say otherwise.** You see the full text every time, and "change this line" is
    always an option.
+
+**What the guard does not catch.** It is a seat belt, not a lock on the door. It stops an accident, not a
+determined attempt: a command hidden in base64 or inside a script file, a value the shell works out at run time,
+an alias or a function, a POST made from inside a program instead of `curl`, a mail client or a browser driven
+through its own window, a file overwritten by an editor rather than by a shell redirection. It also cannot see
+anything done outside this session. Read what your assistant is about to do; the guard is there for the moment
+you did not.
 
 **About e-mail.** Chasecall has no mailbox of its own and sets none up. A letter goes out one of three ways: you
 copy it and send it; or Claude sends it through a mailbox you yourself connected to Claude; or, on a Mac, your own
