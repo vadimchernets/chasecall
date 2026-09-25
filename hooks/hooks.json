@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py due --brief",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py\" due --brief",
             "timeout": 10
           }
         ]
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ${CLAUDE_PLUGIN_ROOT}/scripts/guard.py",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/guard.py\"",
             "timeout": 10
           }
         ]

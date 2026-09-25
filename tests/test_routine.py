@@ -128,11 +128,28 @@ class Prompt(Base):
 
     def test_the_prompt_repeats_the_rules_the_person_is_trusting_us_with(self):
         text = routine.prompt_text()
-        self.assertIn("Send nothing, pay nothing, cancel nothing, delete nothing", text)
+        self.assertIn("Never send, call, pay, cancel or delete anything", text)
         self.assertIn("human <id>", text)
-        self.assertIn("22:00 and 08:00", text)
-        self.assertIn("--evidence", text)
+        self.assertIn("22:00-08:00", text)
         self.assertEqual(text.count("\n"), 0)             # one line, so it pastes into a Routine box
+
+    def test_the_background_run_only_prepares_and_never_spends_an_attempt(self):
+        """The skill forbids sending, so the prompt must not tell the routine to count a letter as sent:
+        three quiet mornings would otherwise use up all three attempts with nothing posted."""
+        text = routine.prompt_text()
+        self.assertIn("log <id> note", text)
+        self.assertIn("never run `wait`", text)
+        self.assertNotIn("log <id> sent", text.replace("never run `wait` or `log <id> sent`", ""))
+        self.assertNotIn("--for", text)
+
+    def test_the_prompt_and_the_watch_skill_tell_the_same_story(self):
+        with open(os.path.join(ROOT, "skills", "watch", "SKILL.md"), "r", encoding="utf-8") as handle:
+            skill = handle.read()
+        text = routine.prompt_text()
+        for promise in ("log <id> note", "human <id>"):
+            self.assertIn(promise, skill, promise)
+            self.assertIn(promise, text, promise)
+        self.assertNotIn("log <id> sent", skill)
 
 
 class Windows(Base):

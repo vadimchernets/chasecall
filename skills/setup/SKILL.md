@@ -62,7 +62,7 @@ Say one sentence and take one yes:
 On a yes, make it a task like any other, so the brief reminds you:
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py add "Look at what is new" --goal "Three things at most that would change this person's own tasks, or an honest nothing" --channel web --every 7d
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py add "Look at what is new" --goal "Three things at most that would change this person's own tasks, or an honest nothing" --channel web --every 7d --standing
 ```
 
 (One line, as written. It is a standing reminder, not something to chase: nobody is being written to.)

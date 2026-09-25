@@ -35,15 +35,23 @@ TASK_NAME = "chasecall"
 DEFAULT_INTERVAL_HOURS = 6
 LANGS = ("en", "ru")
 
+# A background run looks and prepares; it never acts. This is the same job the `watch` skill describes, word for
+# word, and the two must not drift: if the routine were told to `log ... sent` and `wait`, the attempt counter
+# would burn down in three quiet mornings without a single letter having left the house, and on the fourth the
+# person would be told their three attempts are used up.
 WATCH_PROMPT = (
-    "Run the chasecall watch skill. Go through the tasks that are due: `python3 {tracker} due --json`. "
-    "For each of them take the next step that needs neither the person nor anything irreversible - draft the "
-    "letter, check for a reply, change the angle - and write it down with `python3 {tracker} log <id> sent \"...\"` "
-    "and `python3 {tracker} wait <id> --for <interval>`. Send nothing, pay nothing, cancel nothing, delete nothing: "
-    "if a task has come to that, or the attempts are used up, run "
-    "`python3 {tracker} human <id> \"<what the person has to do>\"` and leave it. Write to nobody between 22:00 and "
-    "08:00 local time. Close a task only with proof: `python3 {tracker} done <id> --evidence \"<what proves it>\"`. "
-    "Finish with one short line per task."
+    "Chasecall routine run: look and prepare, never act. "
+    "1) `python3 {tracker} due --json`. "
+    "2) If nothing is due, or it is night (22:00-08:00 local time), write nothing and end - no \"nothing to "
+    "report\" message. "
+    "3) For every task that is due, draft the next step - the letter, the new angle, what to check - and save it "
+    "as a note: `python3 {tracker} log <id> note \"draft ready: <one line>\"`, so the morning brief shows it. "
+    "4) If the attempts are used up, or the task needs the person - a call, a payment, a signature - run "
+    "`python3 {tracker} human <id> \"<what the person must do>\"`. "
+    "Never send, call, pay, cancel or delete anything, and never run `wait` or `log <id> sent`: the attempt "
+    "counter belongs to letters that really went out, and nothing goes out without the person's yes in a session "
+    "they are in. Close nothing without proof. "
+    "Finish with one short line per task, for the person to read in the morning."
 )
 ALLOWED_TOOLS = "Bash(python3 {tracker}*)"
 

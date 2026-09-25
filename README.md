@@ -90,10 +90,16 @@ without anyone touching it.
 Tools change faster than anyone can follow. On a yes at setup, Chasecall keeps one standing task: once a week the
 `scout` skill looks at what has appeared — what Claude Code can now do, which plugins fit, which open tools remove
 a step you do by hand — and brings back **three at most**, said as what they let you do, not what they are called.
-Nothing is installed without your yes. Free ways come first; a paid tool is mentioned only when it is cheap and
-would clearly change one of your own tasks, with the price said plainly - and you are the one who buys it, never
-the plugin. A week with
-nothing worth your minute ends in one line: nothing new that would change your tasks.
+
+It only looks when you have actually been working. If nothing moved in your tasks for a week, it stays quiet and
+spends nothing — the look wakes up when you come back. It searches around **your** tasks, not the industry: the
+titles and channels in your own tracker, and whatever subject you named yourself. It never reads your files to
+guess. Three searches at most, and nothing is installed without your yes. Free ways come first; a paid tool is
+mentioned only when it is cheap and would clearly change one of your own tasks, with the price said plainly — and
+you are the one who buys it, never the plugin. A week with nothing worth your minute ends in one line, or in
+silence if you did not ask.
+
+Say "stop looking for new things" once, and it stops.
 
 ## What it does not do
 

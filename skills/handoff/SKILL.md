@@ -17,6 +17,8 @@ February 2024 (24-17) that AI-generated voices in calls fall under the TCPA - an
 consent in a dozen states. Chasecall will not place calls in a later version either. If the user asks for it, say
 so in one sentence and hand them the script.
 
+_The examples on this page are invented: names, numbers and companies in them are not real._
+
 ## 1. Find the task
 
 `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py show <id>`, or `tracker.py list --state open` when the user
@@ -33,7 +35,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py human <id> "<call the clinic, 8
 > **Who:** the clinic's reception, +7 800 000 00 00 (from their site, checked today)
 > **Why you and not me:** they only take bookings by voice.
 > **Say this:**
-> 1. "Good morning, my name is Anna Petrova, I am calling about the appointment on the 14th."
+> 1. "Good morning, my name is <the user's own name>, I am calling about the appointment on the 14th."
 > 2. "I wrote twice on the 2nd and the 7th and got no answer. I need a date this month."
 > 3. If they say they will call back: "Thank you - can you give me a reference number for this call?"
 > **Get:** a date, or a reference number, or the name of the person who promised the call back.
