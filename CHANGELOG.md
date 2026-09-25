@@ -18,6 +18,27 @@ First public version.
     without: what the thing was for, and whether it is unfinished rather than rubbish - a thing nothing uses is a
     question for the person, not a verdict, and finishing it is offered before deleting it. Wording only: nothing
     is blocked that was not blocked before, and a yes that opened a deletion still opens it.
+  - **Two refusals that were not true, and are gone.** `echo hi > ~/Desktop/note.md` where there is no such file
+    yet was refused as "overwriting one of your files": it writes a new one, and "save me a note on the desktop"
+    was hitting a wall built on a false statement. The redirection is now read against the disk, so a file that
+    is really there is still protected in every form (`>`, `>>`, `2>`, `>|`) and a file that is not there is
+    simply written. And `mv ~/Desktop/notes.txt ~/Documents/ 2>/dev/null` was refused as "throwing a file away
+    into /dev/null" - that `/dev/null` is the shell hiding an error message, not a destination. Redirections are
+    taken off a command's arguments before `mv` and `cp` are judged by where they are really putting the file.
+  - **The person's yes is read in the words people use.** `перезапиши` and `сотри` matched nothing, because the
+    stems were the written forms (`перезапис`, `стере`); and ordinary words for changing a file - поправь,
+    исправь, edit, fix, save - were in no family at all, so "да, поправь мой список покупок" left the block
+    standing in front of the very thing that had just been asked for. Changing a file is now its own family,
+    narrower than deleting: those words open the change and do not open `rm -rf ~/Documents` or `DELETE FROM`.
+    A yes that names the file (`report.docx`) counts on the name alone, with no word from any list.
+  - **The refusal asks for the name of the file, not the name of the family.** It used to print
+    `approved "<what exactly is allowed - say deleting or overwriting files>"` - our own instruction asking for
+    the widest yes there is, which opens every deletion on the computer for fifteen minutes. It now prints the
+    file it is looking at: `approved "edit report.docx"`.
+  - The test project is built outside the system temporary folder. It used to be made by
+    `tempfile.TemporaryDirectory()`, which is `/var/folders/...` on a Mac - a path the guard already waves
+    through as scratch - so every "inside the project this is ordinary work" test was passing on the wrong rule,
+    and the working-folder rule could be deleted from `theirs()` with the whole suite still green. It cannot now.
 - The `SessionStart` hook (`tracker.py due --brief`) makes nothing. It used to open the database, so the task
   file appeared the first time a session started - before `/chasecall:setup`, whose first step is the one that
   says it makes it, and before the person had agreed to anything. With no file there is nothing to show, so it
@@ -69,5 +90,5 @@ First public version.
   written for a person in one of two languages, and anything that needs a number reads the JSON instead.
 - `README.ru.md`: the whole thing in Russian, linked from the first line of `README.md`, with the one command
   that has to be typed (`/chasecall:setup`) and the rest of the commands named as in the English one.
-- 216 automated tests (`python3 -m unittest discover -s tests`). Every guard in this list has one that goes red
+- 237 automated tests (`python3 -m unittest discover -s tests`). Every guard in this list has one that goes red
   when the guard is taken out, checked by taking each one out.

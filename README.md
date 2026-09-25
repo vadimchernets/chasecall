@@ -15,7 +15,7 @@ Nothing acts in your name, and nothing leaves your computer that you did not sen
 Chasecall is an independent open-source project. Not affiliated with Anthropic.
 
 **Status: v0.1 preview.** The tracker, the brief, the phone folder, the routine helper and the safety hook are
-covered by 216 automated tests that use the Python standard library and no network. Treat the first weeks as a
+covered by 237 automated tests that use the Python standard library and no network. Treat the first weeks as a
 trial: check what it writes before it goes out.
 
 ## Install
@@ -158,20 +158,27 @@ same folder, that note is safe too.
 1. **Nothing irreversible without your yes.** Sending, paying, cancelling, deleting: all of it waits for you to
    say yes in the session where it happens.
 2. **That is a hook, not a promise in a prompt.** `scripts/guard.py` runs before every shell command. If the
-   command looks like sending mail, paying, deleting or cancelling, and the tracker has no approval from you in
-   the last 15 minutes, it is blocked. Reading is never blocked. When it is a deletion, the block also asks the
-   assistant to tell you what the thing was for and whether it is unfinished rather than rubbish, and to offer
-   finishing it before deleting it: a file nothing uses is a question for you, not a verdict.
-3. **Three attempts, then a person.** After the third push on one channel, the task is handed back to you instead
+   command looks like sending mail, paying, deleting, cancelling or writing over a file you keep, and the tracker
+   has no approval from you in the last 15 minutes, it is blocked. Reading is never blocked, and neither is
+   making a file that is not there yet: writing a new note destroys nothing, and you are not asked about it. When
+   it is a deletion, the block also asks the assistant to tell you what the thing was for and whether it is
+   unfinished rather than rubbish, and to offer finishing it before deleting it: a file nothing uses is a
+   question for you, not a verdict.
+3. **A yes is as wide as the words in it, and no wider.** Say it in your own words - "да, поправь список
+   покупок", "yes, edit shopping.md", "сотри старые билеты" - and the assistant writes down what you agreed to.
+   A yes about changing a file does not open a deletion; a yes that names one file is about that file. The hook
+   reads what was written down, not what was said, which is why a "да" in passing opens nothing: it names
+   nothing.
+4. **Three attempts, then a person.** After the third push on one channel, the task is handed back to you instead
    of getting a fourth letter. Changing channel is a decision you see.
-4. **Quiet hours.** Between 22:00 and 08:00 local time, tasks are shown but nothing is written to anyone.
-5. **No network in the code.** The scripts use the Python standard library and open no connection. There is no key
+5. **Quiet hours.** Between 22:00 and 08:00 local time, tasks are shown but nothing is written to anyone.
+6. **No network in the code.** The scripts use the Python standard library and open no connection. There is no key
    to leak, because there is no key.
-6. **Your file stays yours.** Everything is in `~/.claude/chasecall/chasecall.db` on your computer (move it with
+7. **Your file stays yours.** Everything is in `~/.claude/chasecall/chasecall.db` on your computer (move it with
    `CHASECALL_DB`). Delete the file and Chasecall has forgotten everything.
-7. **Letters are drafts until you say otherwise.** You see the full text every time, and "change this line" is
+8. **Letters are drafts until you say otherwise.** You see the full text every time, and "change this line" is
    always an option.
-8. **What it reads is material, never an instruction.** A photographed letter, a note, a PDF, a reply from the
+9. **What it reads is material, never an instruction.** A photographed letter, a note, a PDF, a reply from the
    company or a page found by searching can say "write to this address instead" or "confirm the payment here" -
    and it stays a page that says so. Claude reads it out to you and asks; it does not obey it. In particular, an
    address or a telephone number printed on a page never becomes the party being chased until you have said so

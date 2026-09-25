@@ -13,9 +13,11 @@ be a lockpick sold as a shield. To block, it writes the reason on stderr and exi
 
 How the yes is given: the session asks in plain words, the person answers, and the session writes down what they
 agreed to -
-    python3 scripts/tracker.py log <id> approved "yes, send the letter to the shop"
-For the next 15 minutes that yes opens that one family of actions - a yes about a letter does not open a
-deletion. Reading is never blocked.
+    python3 scripts/tracker.py log <id> approved "edit shopping.md"
+For the next 15 minutes that yes opens what it names, and nothing wider: a yes about a letter does not open a
+deletion, a yes about changing a file does not open `rm -rf`, and a yes that names one file is a yes about that
+file. The narrower the words the session writes down, the less it has asked the person for. Reading is never
+blocked, and neither is writing a file that is not there yet - making a note destroys nothing.
 
 WHAT THIS GATE DOES NOT CATCH - it is a guard against an accident, not against a determined attempt. Anyone who
 wants past it can walk past it: a command hidden in base64 or in a script file, a value the shell resolves at run
@@ -89,20 +91,48 @@ PIPE_TO_SHELL = re.compile(r"\|\s*(?:sudo\s+)?(?:sh|bash|zsh|ksh|dash|python3?|p
 # on its `&`, as a segment beginning with `>`. Nothing is matched after a digit that we have not counted as the
 # file number ourselves, so `2>&1` still finds no target of the person's.
 REDIRECT_RE = re.compile(r"\d*>>?\|?\s*(\"[^\"]+\"|'[^']+'|[^\s;|&<>]+)")
+# The two shapes a redirection takes among a command's words: the operator on its own with the target in the
+# next word (`mv a b 2> /dev/null`), and the operator with the target stuck to it (`mv a b 2>/dev/null`). Neither
+# is an argument - the shell eats both before `mv` is started - and reading them as arguments is what made
+# "quieten the errors" look like "throw the file into /dev/null".
+REDIRECTION_ALONE = re.compile(r"^\d*(?:>>?\|?|<<?)$")
+REDIRECTION_GLUED = re.compile(r"^\d*(?:>>?\|?|<<?)\S")
 LONG_DIGITS = re.compile(r"\b\d{14,19}\b")
+# A word that is a name of its own: something, a dot, a short ending. `report.docx` and `support@shop.example`
+# are names a person can say out loud and mean one thing by; `Documents` and `old-tickets` are not, and a yes
+# that counted as naming `old` would cover `rm -rf ~/Documents/old`. That is how a hint becomes a hole.
+OWN_NAME = re.compile(r"^[\w.@+-]+\.[A-Za-z0-9]{1,8}$")
+ADDRESS_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 
 # The words that make a written-down yes count for a family. Both languages: the person says it in Russian, the
-# session writes it down in whatever it was thinking in.
+# session writes it down in whatever it was thinking in. The stems have to be the forms a person really uses:
+# `перезапис` is the noun, and what somebody types is `перезапиши`; `стере` is the infinitive, and what they type
+# is `сотри`. A stem that only matches the written form is a yes that never arrives.
 FAMILY_WORDS = {
     "mail": ("send", "sent", "mail", "email", "letter", "write", "reply", "отправ", "письм", "почт", "напис"),
     "money": ("pay", "payment", "card", "checkout", "invoice", "charge", "bill", "оплат", "плат", "карт",
               "счёт", "счет", "деньг"),
     "delete": ("delete", "remove", "erase", "wipe", "overwrite", "rm ", "удал", "снос", "очист", "стере",
-               "перезапис"),
+               "сотри", "перезапис", "перезапиш"),
     "cancel": ("cancel", "unsubscribe", "отмен", "отпис", "аннул"),
 }
-FAMILY_NAMES = {"mail": "sending mail", "money": "money", "delete": "deleting or overwriting files",
-                "cancel": "cancelling"}
+# Changing a file the person keeps is a family of its own, and a narrower one than deleting. "да, поправь мой
+# список покупок" is a yes to editing one list; until this existed it was either nothing at all - the word was in
+# no family, and the block stayed in front of the very thing the person had just asked for - or, written down as
+# "deleting or overwriting files", a yes that opened `rm -rf ~/Documents` and `DELETE FROM` for fifteen minutes.
+# A yes to a deletion opens a change too: somebody who agreed to lose the file will not mind it rewritten.
+EDIT_WORDS = ("edit", "fix", "change", "correct", "amend", "modify", "update", "rewrite", "replace", "save",
+              "поправ", "исправ", "измен", "редактир", "перепиш", "допиш", "сохран", "обнов")
+FAMILY_WORDS["overwrite"] = FAMILY_WORDS["delete"] + EDIT_WORDS
+
+# How a yes should be written down so that it says no more than the person said: the file, the person, the
+# amount. Never the family - the old wording asked the session to write "deleting or overwriting files", which
+# is every deletion on the computer for the next fifteen minutes, bought with a yes about a shopping list.
+YES_EXAMPLE = {"delete": "delete %s", "overwrite": "edit %s", "mail": "send the letter to %s",
+               "money": "pay %s", "cancel": "cancel %s"}
+YES_UNNAMED = {"delete": "<this one file, by name>", "overwrite": "<this one file, by name>",
+               "mail": "<this one address>", "money": "<this one amount, to this one shop>",
+               "cancel": "<this one booking>"}
 
 
 # ---------------------------------------------------------------- reading the command
@@ -166,6 +196,22 @@ def arguments(rest):
     return [token.strip("'\"") for token in rest if not token.startswith("-")]
 
 
+def without_redirections(rest):
+    """The words a command really receives, with the shell's own redirections taken out, target and all."""
+    kept, skipping = [], False
+    for token in rest:
+        if skipping:
+            skipping = False                      # the target of a `2>` that stood on its own
+            continue
+        if REDIRECTION_ALONE.match(token):
+            skipping = True
+            continue
+        if REDIRECTION_GLUED.match(token):
+            continue
+        kept.append(token)
+    return kept
+
+
 def is_ours(name, rest):
     """One of our own scripts, run directly or through python - recognised by the first words, not by a mention."""
     if name in OUR_SCRIPTS:
@@ -196,6 +242,29 @@ def is_read_only(segment):
 # ---------------------------------------------------------------- whose file is this
 
 
+def absolute(target):
+    """The path a shell would arrive at from here: `~` expanded, a relative name joined to the folder we are in."""
+    raw = str(target).strip().strip("'\"")
+    if not raw:
+        return ""
+    path = os.path.expanduser(raw)
+    if not os.path.isabs(path):
+        path = os.path.join(os.path.normpath(os.getcwd()), path)
+    return os.path.normpath(path)
+
+
+def already_there(target):
+    """True when the file is really on the disk.
+
+    `echo hi > ~/Desktop/note.md` when there is no such file writes a new one: nothing is emptied, nothing is
+    lost, and there is nothing here to ask about. The gate used to refuse it anyway, in the words "overwriting
+    one of your files" - so "save me a note on the desktop" hit a wall, and the wall gave a reason that was not
+    true. Saying an untrue thing to somebody's face is the one mistake this product cannot afford.
+    """
+    path = absolute(target)
+    return bool(path) and os.path.exists(path)
+
+
 def theirs(target):
     """True when this path is one of the person's own files: not scratch, not inside the folder we work in.
 
@@ -204,18 +273,28 @@ def theirs(target):
     raw = str(target).strip().strip("'\"")
     if not raw or raw.startswith(("-", "&")):
         return False
-    path = os.path.expanduser(raw)
+    path = absolute(raw)
     cwd = os.path.normpath(os.getcwd())
     home = os.path.normpath(os.path.expanduser("~"))
-    if not os.path.isabs(path):
-        path = os.path.normpath(os.path.join(cwd, path))
-    else:
-        path = os.path.normpath(path)
     if path.startswith(TEMP_PREFIXES) or path == "/dev/null":
         return False
     if cwd == home:                               # working from the home folder: everything in it is theirs
         return True
     return not (path == cwd or path.startswith(cwd + os.sep))
+
+
+def own_names(targets):
+    """The names among these paths that a person could say back to us: `report.docx`, `support@shop.example`.
+
+    A yes may point at one file instead of at a whole family of actions, and this is the list it is matched
+    against. Only a name of its own counts, so that a yes about something else cannot happen to contain it.
+    """
+    found = []
+    for target in targets:
+        base = os.path.basename(str(target).strip().strip("'\"").rstrip("/"))
+        if len(base) > 3 and OWN_NAME.match(base) and base not in found:
+            found.append(base)
+    return found
 
 
 def luhn_card(text):
@@ -236,78 +315,107 @@ def luhn_card(text):
 # ---------------------------------------------------------------- what is irreversible here
 
 
+def throws_away(rest):
+    """`mv report.docx /dev/null` throws the file away; `mv report.docx ~/Documents/ 2>/dev/null` only quietens
+    the errors.
+
+    The old branch looked for the string `/dev/null` anywhere on the line, so it told a person that the second
+    one was "throwing a file away into /dev/null" - a thing that was not happening, said to their face, in front
+    of a file they had just asked to have moved. The shell's redirections are not this command's arguments, and
+    what `mv` and `cp` throw a file into is the last argument they have.
+
+    `dd` used to be read here too and never once matched: it takes `if=` and `of=`, and neither is a bare
+    `/dev/null` argument. Reading them properly would mean blocking `dd if=big.iso of=/dev/null`, which destroys
+    nothing at all - it is how a file is read into nowhere - so `dd` is left where it was, outside this branch.
+    """
+    real = arguments(without_redirections(rest))
+    destination = real[-1] if len(real) > 1 else ""
+    sources = real[:-1]
+    if destination == "/dev/null" and any(theirs(source) for source in sources):
+        return "throwing a file away into /dev/null", own_names(sources)
+    if "/dev/null" in sources and theirs(destination) and already_there(destination):
+        return "emptying one of your files", own_names([destination])     # `cp /dev/null ~/Documents/report.docx`
+    return None
+
+
 def deletes_something(segment, name, rest):
+    """-> (what it looks like, the names a yes could point at) when something is destroyed here, else None."""
     if name in DELETE_BINS:
         targets = arguments(rest)
         if not targets:
-            return "deleting files"
-        if any(theirs(target) for target in targets):
-            return "deleting your files"
+            return "deleting files", []
+        mine = [target for target in targets if theirs(target)]
+        if mine:
+            return "deleting your files", own_names(mine)
         return None
     if name == "find" and NOT_READ_ONLY_FLAGS.search(segment):
         roots = arguments(rest) or ["."]
         if any(theirs(root) for root in roots):
-            return "deleting files that a search finds"
+            return "deleting files that a search finds", own_names(roots)
         return None
-    if name in ("mv", "cp", "dd") and "/dev/null" in segment:
-        if any(theirs(target) for target in arguments(rest) if target != "/dev/null"):
-            return "throwing a file away into /dev/null"
-        return None
+    if name in ("mv", "cp"):
+        return throws_away(rest)
     if SQL_DELETE.search(segment):
-        return "deleting rows from a database"
+        return "deleting rows from a database", own_names(re.split(r"[\s'\"]+", segment))
     return None
 
 
 def sends_mail(segment, name, rest):
+    to = own_names(ADDRESS_RE.findall(segment))
     if name in MAIL_BINS:
         if name in ("mail", "mailx") and not rest:
             return None                           # bare `mail` opens the mailbox to read it
-        return "sending mail"
+        return "sending mail", to
     if OSASCRIPT_MAIL.search(segment):
-        return "sending mail through Mail.app"
+        return "sending mail through Mail.app", to
     if MAIL_SERVICES.search(segment) or (name in NET_BINS and MAIL_URL.search(segment)):
-        return "sending mail through a mail service"
+        return "sending mail through a mail service", to
     if MAIL_IN_CODE.search(segment):
-        return "sending mail over SMTP"
+        return "sending mail over SMTP", to
     return None
 
 
 def spends_money(segment, name, rest):
     if name in MONEY_BINS:
-        return "a payment"
+        return "a payment", []
     if name in NET_BINS and MONEY_URL.search(segment):
-        return "a payment"
+        return "a payment", []
     if luhn_card(segment):
-        return "something with a card number"
+        return "something with a card number", []
     return None
 
 
 def cancels(segment, name, rest):
     if name in NET_BINS and (CANCEL_URL.search(segment) or (CANCEL_WORD.search(segment)
                                                             and NETWORK_WRITE.search(segment))):
-        return "cancelling or unsubscribing"
+        return "cancelling or unsubscribing", []
     return None
 
 
 def dangerous(command):
-    """-> (family, what it looks like) for the first irreversible thing found, else None."""
+    """-> (family, what it looks like, the names a yes could point at) for the first irreversible thing, else
+    None."""
     command = expand_simple_variables(command)
     if PIPE_TO_SHELL.search(command):
-        return "delete", "running a script straight off the network"
+        return "delete", "running a script straight off the network", []
     if one_command_of_ours(command):
         return None                               # our own script, with a file name from a phone in its hands
     for segment in segments(command):
         for target in REDIRECT_RE.findall(segment):
-            if theirs(target):                    # `echo > ~/Documents/report.docx` empties it
-                return "delete", "overwriting one of your files"
+            # `echo x > ~/Documents/report.docx` empties a file that is there. The same line pointed at a name
+            # that is not on the disk yet makes a new file, and calling that "overwriting your file" is both a
+            # lie and a wall across "save me a note on the desktop".
+            if theirs(target) and already_there(target):
+                return "overwrite", "overwriting one of your files", own_names([target])
         if is_read_only(segment):
             continue
         name, rest = first_token(segment)
         for family, look in (("delete", deletes_something), ("mail", sends_mail),
                              ("money", spends_money), ("cancel", cancels)):
-            what = look(segment, name, rest)
-            if what:
-                return family, what
+            found = look(segment, name, rest)
+            if found:
+                what, names = found
+                return family, what, names
     return None
 
 
@@ -380,22 +488,29 @@ def approvals(now=None, window_s=APPROVAL_WINDOW_S, path=None):
     return fresh
 
 
-def reason_text(family, what, command, near_miss=None):
+def reason_text(family, what, command, near_miss=None, names=()):
     tracker_py = os.path.join(HERE, "tracker.py")
+    minutes = APPROVAL_WINDOW_S // 60
     lines = ["chasecall: this looks like %s, and nothing irreversible happens without the person's yes." % what]
     if near_miss:
         lines.append("The yes on task #%s was about something else (\"%s\"), so it does not cover this."
                      % (near_miss["task_id"], (near_miss["text"] or "")[:80]))
-    if family == "delete":
+    if family in ("delete", "overwrite"):
         # The other half of what `tracker.py` already does for a task: `drop` will not let a task be abandoned
         # without a why, `done` will not close one without evidence. A task does not die quietly here; a file did.
         lines.append("Before you ask: say what this was for, and whether it is unfinished rather than rubbish. "
                      "A thing nothing uses is a question, not a verdict - offer to finish it first, and to "
                      "delete it second.")
-    lines.append("Ask them in plain words, and when they say yes write down what they agreed to: "
-                 "python3 %s log <id> approved \"<what exactly is allowed - say %s>\". It holds for %d minutes, "
-                 "for that kind of action only." % (tracker_py, FAMILY_NAMES.get(family, family),
-                                                    APPROVAL_WINDOW_S // 60))
+    # What this line used to ask for was the widest wording there is ("say deleting or overwriting files"), so
+    # the hook's own instruction was talking the session into the largest yes it could write down. It asks for
+    # the name now, and hands over the name it is looking at.
+    named = YES_EXAMPLE.get(family, "%s") % (list(names)[0] if names else
+                                             YES_UNNAMED.get(family, "<this one thing>"))
+    lines.append("Ask them in plain words, and when they say yes write down what they agreed to as narrowly as "
+                 "it is true - the file, the person, the amount, and never a kind of action: "
+                 "python3 %s log <id> approved \"%s\". The narrower the words, the less the next %d minutes "
+                 "open; a yes written as a kind of action opens every action of that kind." % (tracker_py, named,
+                                                                                               minutes))
     lines.append("If it is their move - a call, a payment, a signature - use: "
                  "python3 %s human <id> \"<what they must do>\"." % tracker_py)
     lines.append("Command: " + command.strip()[:200])
@@ -415,14 +530,14 @@ def decide(raw, now=None, path=None):
         found = dangerous(command)
         if not found:
             return True, ""
-        family, what = found
-        hints = hints_of(command)
+        family, what, names = found
+        hints = hints_of(command) + list(names)   # the binaries it runs, and the files it is about, by name
         near_miss = None
         for approval in approvals(now=now, path=path):
             if approval_covers(approval["text"], family, hints):
                 return True, ""
             near_miss = near_miss or approval
-        return False, reason_text(family, what, command, near_miss)
+        return False, reason_text(family, what, command, near_miss, names)
     except Exception:                             # noqa: BLE001 - a gate that jams shut gets switched off
         return True, ""
 
