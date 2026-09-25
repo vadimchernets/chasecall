@@ -15,7 +15,7 @@ Nothing acts in your name, and nothing leaves your computer that you did not sen
 Chasecall is an independent open-source project. Not affiliated with Anthropic.
 
 **Status: v0.1 preview.** The tracker, the brief, the phone folder, the routine helper and the safety hook are
-covered by 237 automated tests that use the Python standard library and no network. Treat the first weeks as a
+covered by 246 automated tests that use the Python standard library and no network. Treat the first weeks as a
 trial: check what it writes before it goes out.
 
 ## Install
@@ -60,6 +60,19 @@ Plain words work as well as the commands. Both languages work.
 
 The commands behind them, if you prefer typing: `/chasecall:take`, `/chasecall:brief`, `/chasecall:push`,
 `/chasecall:handoff`, `/chasecall:watch`, `/chasecall:scout`, `/chasecall:inbox`, and `/chasecall:setup`.
+
+**A hard call in a language you barely have.** Say "I have to call them and I do not speak the language" and the
+same command builds the card for it, on one screen. First it tells you the thing that helps most and that almost
+nobody is told: **in a clinic, a bank or a government office an interpreter is often yours by right and free** -
+a real person on the line beats anything that can be written for you, and the first sentence of the call can
+simply be the request for one. Then the card: whether you may record the call where you are (a participant may
+not in Portugal, in eleven US states or in New South Wales - if in any doubt, don't; the card works without it),
+what you want in one sentence you can check, five things to say in their language written so you can read them
+aloud, five questions they will ask with your answers ready, three rescue phrases - one of them asking for an
+interpreter - and, at the end, "please send me this in writing", which is the proof the task closes on. If your
+own phone translates calls (Samsung, Pixel, or an iPhone 15 Pro or newer for Spanish and Portuguese only), that
+is yours to switch on and it tells the other side by itself. Chasecall does not translate the call: no recording,
+no transcript, no second phone listening. You call, you speak.
 
 ## Why this and not an API agent
 
@@ -137,7 +150,10 @@ same folder, that note is safe too.
   send yourself. Letters go from your own mailbox: you send them, or your own mail program does, after your yes.
 - **It does not make phone calls, and it is not going to in a later version.** An artificial voice on a call is
   regulated - the FCC ruled in February 2024 (24-17) that AI voices in calls fall under the TCPA - and recording a
-  call needs everyone's consent in a dozen states. Chasecall writes the script; you speak.
+  call needs everyone's consent in eleven US states. Chasecall writes the script; you speak.
+- **It does not translate a live conversation, and it will not tell you how to.** No recording of the call for it
+  to listen to, no transcript, no second phone left on the table. It writes the card and you hold it. Where your
+  own phone can translate a call on the device, that is yours to switch on, and it warns the other side itself.
 - It does not pay, and it never holds a card number, a password or a code.
 - It does not write at night, and it does not write a fourth time on a channel where three letters went unanswered.
 - It does not close a task because someone promised. A task closes with evidence: a reference number, the money on

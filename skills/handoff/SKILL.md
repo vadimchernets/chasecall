@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Write the script for the part only the user can do - a phone call or a payment - and keep the task alive afterwards. Gives who to call, the number, the three sentences to say, what to get out of it and what to write down; or the amount, where to pay it and what to check first. Use when a task needs a voice or money, or when the user says "I have to call them", "what do I say", "мне надо позвонить", "что им сказать".
+description: Write the script for the part only the user can do - a phone call or a payment - and keep the task alive afterwards. Gives who to call, the number, the three sentences to say, what to get out of it and what to write down; or the amount, where to pay it and what to check first. For a call in a language the user barely has, builds the call card: whether recording is allowed there, the phrases, the likely questions, and how to ask for an interpreter. Use when a task needs a voice or money, or when the user says "I have to call them", "what do I say", "I do not speak the language", "мне надо позвонить", "что им сказать", "я не говорю на их языке", "как попросить переводчика".
 argument-hint: "[task id, or a few words about the task]"
 allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py *) Read
 ---
@@ -14,7 +14,7 @@ writes the script, holds the task, and records the result. Say that plainly once
 
 This is not a missing feature. An artificial voice on a call is regulated - in the United States the FCC ruled in
 February 2024 (24-17) that AI-generated voices in calls fall under the TCPA - and recording a call needs everyone's
-consent in a dozen states. Chasecall will not place calls in a later version either. If the user asks for it, say
+consent in eleven US states. Chasecall will not place calls in a later version either. If the user asks for it, say
 so in one sentence and hand them the script.
 
 _The examples on this page are invented: names, numbers and companies in them are not real._
@@ -54,6 +54,46 @@ refusal, a "call back later") and no more - a page nobody can hold in their hand
 If the number is not in the task, say where the user can find it and ask for it; never invent a number, and never
 promise that a number is current.
 
+### The call card, when the call is in a language the user barely has
+
+**Before any of it, say the thing almost nobody tells them: an interpreter is often theirs by right and free.**
+In a clinic or a hospital, in a bank, in a government office, the institution in many countries is obliged to
+provide one when it is asked for - and a human interpreter on that line beats anything we can write. Say it
+first, in one line, and make the request for one the first sentence of the call. Then build the card anyway: it
+is what the user holds while they ask.
+
+This is the one place where the three-sentence rule above gives way. Three sentences are enough in your own
+language; in somebody else's the words have to be in front of you. Eight parts, still one screen:
+
+1. **Whether the call may be recorded** - the first line, because it is the first thing they ask. Below.
+2. **What you want, in one sentence somebody else could check.** Not "call the clinic" but "get the reference
+   number of my complaint and hear it read back to me".
+3. **Five things to say**, in the other side's language, in their plainest words - and written so the user can
+   read them aloud: the phrase, then the same phrase in the letters they do read. A line of Portuguese is no use
+   to somebody who has never read Portuguese.
+4. **Five questions they will be asked, with the answer already written next to each:** their name, their date
+   of birth, the number on the letter, the date of the last visit, "who am I speaking to about this?".
+5. **Three rescue phrases** for the moment it leaves the script - "slower, please", "say that again, please",
+   and the one that matters: **"I need an interpreter, please"**, in the other side's language.
+6. **What to ask for at the end: "please send me this in writing."** The letter is the evidence; the task closes
+   on the letter, not on what was said on the phone.
+7. **What the phone can do by itself**, named once, in one line. Below.
+8. **After the call:** what was achieved, and the next step - §3 below.
+
+**The first line.** A participant in the conversation may **not** record it in Portugal (article 199 of the
+Criminal Code, up to a year), in eleven US states - California, Delaware, Florida, Illinois, Maryland,
+Massachusetts, Montana, Nevada, New Hampshire, Pennsylvania, Washington - or in New South Wales. A participant
+**may** in the United States federally and in the one-party states, in England for their own use, in Queensland
+and Victoria, in Spain, Brazil, Argentina, Colombia and Ukraine. Anywhere on neither list, or any doubt at all:
+**do not record.** Nothing in the card leans on a recording - that is the whole reason the answers are written
+down before the call.
+
+**What the phone does without us.** A Samsung Galaxy or a Pixel translates a live call on the device itself; an
+iPhone 15 Pro or newer does it for Spanish (Spain) and Portuguese (Brazil) and for nothing else - there is no
+Russian and no Ukrainian in Apple's call translation. Where it works, the phone announces to the other side that
+the call is being translated, by itself, so nobody is listened to unawares. Name it as the user's own to switch
+on and stop there: we do not set it up, and the card is written as if it were not there.
+
 ## 2b. A payment: what and where, then stop
 
 > **Amount:** 2 400 RUB, one payment, not a subscription.
@@ -74,7 +114,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py log <id> reply "<what was actua
 
 Then decide with the user:
 
-- it worked → `tracker.py done <id> --evidence "<reference number, the date given, the receipt>"`
+- it worked → `tracker.py done <id> --evidence "<reference number, the letter they sent, the date given>"`
 - a promise, nothing firm → `tracker.py wait <id> --for 72h` and say when you will bring it up again
 - a refusal → the next angle on another channel (the `push` skill), or `tracker.py drop <id> "<why>"` if the user
   is finished with it
@@ -87,6 +127,10 @@ it.
 - Never send an e-mail, a message or a form without the user's explicit yes in this session.
 - Never speak on the phone in the user's name, place a call, leave a voice message, or use a voice service to do
   it. The user's voice is the user's.
+- Never translate a live conversation, and never advise a way of doing it: no recording of the call for us to
+  listen to afterwards, no transcript, no second phone left on the table listening. The user calls and the user
+  speaks; what we write is what they hold in their hand. Their own phone's on-device translation is theirs to
+  switch on, and it warns the other side itself.
 - Never pay for anything, and never ask for or store a card number, password or code.
 - Never write to anyone between 22:00 and 08:00 local time, and do not suggest calling anyone at that hour.
 - Never more than three pushes on one channel; after that ask the user to step in.

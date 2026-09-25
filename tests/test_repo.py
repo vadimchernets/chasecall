@@ -379,5 +379,117 @@ class NothingWeDoNotWant(unittest.TestCase):
             self.assertIsNone(other.search(text), rel)
 
 
+class TheCallCardThatWasPromisedBeforeItExisted(unittest.TestCase):
+    """Rule 18 of the coach, and the `chasecall/` paragraph of the letter people are started on, both went out to
+    buyers with this sentence in them: a hard call in a foreign language belongs here too - build the card before
+    the call, `/chasecall:handoff`. The skill they point at was ninety-eight lines with not one word about
+    phrases, an interpreter or recording: we had told a person, in writing, about something that did not exist.
+
+    Every assertion below is written from that promise and not from the page, so the page cannot be trimmed to
+    meet the test. Cut the card out of `handoff` and this class goes red.
+    """
+
+    # A participant may not record their own call in these eleven. The list is the reason the first line of the
+    # card exists, and it is here in full because "a dozen states" - which is what the skill used to say - is the
+    # kind of nearly-right that puts somebody in front of article 199 of somebody else's criminal code.
+    NO_RECORDING = ["California", "Delaware", "Florida", "Illinois", "Maryland", "Massachusetts", "Montana",
+                    "Nevada", "New Hampshire", "Pennsylvania", "Washington"]
+    # what the coach promised the buyer -> what has to be on the page for that promise to be true
+    PROMISED = [
+        ("build the card before the call", ["call card"]),
+        ("what to achieve in one checkable sentence", ["one sentence somebody else could check"]),
+        ("five phrases in the other side's language", ["Five things to say", "in the other side's language"]),
+        ("five likely questions with answers", ["Five questions they will be asked",
+                                                "with the answer already written"]),
+        ("three rescue phrases", ["Three rescue phrases"]),
+        ("one of them asking for an interpreter", ['"I need an interpreter, please"']),
+        ("in a clinic, a bank or a government office an interpreter is often free",
+         ["an interpreter is often theirs by right and free", "clinic", "bank", "government office", "obliged"]),
+        ("the first line of the card says whether recording is allowed", ["article 199", "New South Wales",
+                                                                         "do not record"]),
+        ("the phone may translate the call itself", ["Samsung Galaxy or a Pixel", "iPhone 15 Pro or newer",
+                                                    "Spanish (Spain) and Portuguese (Brazil)"]),
+        ("the phone warns the other side by itself", ["announces to the other side"]),
+        ("never listen to the call or transcribe it yourself", ["Never translate a live conversation",
+                                                                "no transcript"]),
+    ]
+
+    def body(self):
+        return " ".join(read("skills", "handoff", "SKILL.md").split())
+
+    def test_nothing_the_coach_promised_is_missing_from_the_page(self):
+        body = self.body()
+        for promise, needles in self.PROMISED:
+            for needle in needles:
+                self.assertIn(needle, body, "the coach promised %r and the skill does not say it" % promise)
+
+    def test_the_first_line_of_the_card_names_every_place_a_participant_may_not_record(self):
+        body = self.body()
+        self.assertEqual(len(self.NO_RECORDING), 11)
+        for state in self.NO_RECORDING:
+            self.assertIn(state, body, state)
+        self.assertIn("Portugal", body)
+        self.assertNotIn("a dozen states", body, "eleven are named below; do not also say a dozen")
+        self.assertNotIn("a dozen states", read("README.md"))
+
+    def test_the_card_says_where_a_participant_may_record_as_well_as_where_they_may_not(self):
+        """A page that lists only the bans teaches the model to answer "do not record" everywhere, which is wrong
+        in the country most of these people are actually calling from."""
+        body = self.body()
+        for allowed in ("United States federally", "one-party states", "England for their own use",
+                        "Queensland and Victoria", "Spain, Brazil, Argentina, Colombia and Ukraine"):
+            self.assertIn(allowed, body, allowed)
+
+    def test_the_card_does_not_need_the_recording_it_may_not_have(self):
+        self.assertIn("Nothing in the card leans on a recording", self.body())
+
+    def test_the_end_of_the_call_asks_for_the_thing_that_closes_the_task(self):
+        """"Please send me this in writing" is the whole point of the call: a promise made on the telephone is not
+        evidence, and `done` needs evidence."""
+        body = self.body()
+        self.assertIn('"please send me this in writing."', body)
+        self.assertIn("The letter is the evidence", body)
+        self.assertIn("the letter they sent", body)
+        self.assertIn("Never close a task without evidence", body)
+
+    def test_live_translation_is_refused_in_the_never_list_and_not_only_in_passing(self):
+        """A rule that is only in the prose is a rule the model weighs against the person's wish to be helped.
+        This one is in `## Never`, next to the voice and the card number."""
+        never = read("skills", "handoff", "SKILL.md").split("## Never", 1)[1]
+        never = " ".join(never.split())
+        self.assertIn("Never translate a live conversation", never)
+        for refused in ("no recording of the call for us to listen to", "no transcript",
+                        "no second phone left on the table listening"):
+            self.assertIn(refused, never, refused)
+
+    def test_the_page_does_not_promise_a_translation_apple_does_not_have(self):
+        """The two languages most of these people need are the two Apple's call translation does not do. A page
+        that says "your iPhone can translate the call" and stops there sends a Russian speaker into a call with a
+        clinic trusting a feature that will not come on."""
+        self.assertIn("no Russian and no Ukrainian in Apple's call translation", self.body())
+
+    def test_the_card_did_not_arrive_as_a_second_skill_under_one_roof(self):
+        """It was to go inside the existing logic: no new command, no new grant, and a page somebody can still
+        hold in their hand."""
+        head = frontmatter("handoff")
+        self.assertEqual(tools_in(head["allowed-tools"]),
+                         ["Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py *)", "Read"])
+        self.assertLess(len(read("skills", "handoff", "SKILL.md").splitlines()), 180)
+        self.assertNotIn("interpreter", head["name"])
+        self.assertIn("interpreter", head["description"], "the skill has to fire when the call is in Portuguese")
+
+    def test_both_readmes_promise_the_card_in_the_language_their_reader_reads(self):
+        """The buyer's coach says this in English and the letter says it in Russian. A reader who arrives at the
+        repository instead has to find the same three facts: the free interpreter, the recording, and that we do
+        not translate the call."""
+        english = read("README.md")
+        for needle in ("interpreter", "in writing", "record"):
+            self.assertIn(needle, english, needle)
+        self.assertIn("Portugal", english)
+        russian = read("README.ru.md")
+        for needle in ("переводчик", "письмом", "записыв", "Португалии"):
+            self.assertIn(needle, russian, needle)
+
+
 if __name__ == "__main__":
     unittest.main()

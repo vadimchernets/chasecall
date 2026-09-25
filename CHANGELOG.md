@@ -81,6 +81,24 @@ First public version.
   by searching. It is quoted, never obeyed, and an address printed on a page never becomes the party being
   chased until the person has said so themselves. In every skill that reads anything (`take`, `push`, `handoff`,
   `scout`, `inbox`) and in both READMEs.
+- **The call card, for a hard call in a language the person barely has** (`handoff`). Before the card, the thing
+  that helps most and that almost nobody is told: in a clinic, a bank or a government office an interpreter is
+  often theirs by right and free, and the first sentence of the call can simply be the request for one. Then one
+  screen: whether a participant may record the call where they are — the first line, because it is the first
+  thing they ask, with Portugal (article 199), the eleven US states and New South Wales named, the places where
+  a participant may record named as well, and "do not record" wherever there is doubt; what they want in one sentence
+  somebody else could check; five things to say in the other side's language, written so they can be read aloud;
+  five questions they will be asked with the answers already next to them; three rescue phrases, one of them
+  asking for an interpreter; and "please send me this in writing", which is the evidence the task closes on.
+  - **A live conversation is not translated by us, and no way of doing it is advised** — no recording for us to
+    listen to afterwards, no transcript, no second phone left on the table. That is in `## Never`, next to the
+    voice and the card number, and not only in the prose. The person's own phone is a different matter: a Samsung
+    or a Pixel translates a call on the device, an iPhone 15 Pro or newer does Spanish and Portuguese and nothing
+    else — there is no Russian and no Ukrainian in Apple's call translation — and where it works the phone tells
+    the other side by itself. Named in one line, never set up by us.
+  - Written because the promise had already gone out to people in the coach they are given: rule 18 sends them to
+    `/chasecall:handoff` for exactly this card. The tests for it are written from that promise rather than from
+    the page, so the page cannot be trimmed to fit them.
 - Standard library only: no API key, no account, no paid service, no network in the scripts.
 - The shared database waits for the other process (sqlite's busy timeout) instead of failing at once, and what
   it says is the right one of three sentences, in the person's own language: busy (try in a moment), cannot be
@@ -90,5 +108,5 @@ First public version.
   written for a person in one of two languages, and anything that needs a number reads the JSON instead.
 - `README.ru.md`: the whole thing in Russian, linked from the first line of `README.md`, with the one command
   that has to be typed (`/chasecall:setup`) and the rest of the commands named as in the English one.
-- 237 automated tests (`python3 -m unittest discover -s tests`). Every guard in this list has one that goes red
+- 246 automated tests (`python3 -m unittest discover -s tests`). Every guard in this list has one that goes red
   when the guard is taken out, checked by taking each one out.
