@@ -108,6 +108,17 @@ class Status(Base):
         self.assertFalse(os.path.exists(self.db))         # asking a question creates nothing
         self.assertIn("never", routine.render_status(data, "en"))
 
+    def test_the_screen_speaks_the_persons_language_all_the_way_down(self):
+        """The four steps were translated and the five lines above them were not, so a Russian reader got
+        `claude in PATH:` and `last sweep: never` over the top of their own instructions."""
+        russian = routine.render_status(routine.status(lang="ru", binary=None), "ru")
+        self.assertIn("файл с делами:", russian)
+        self.assertIn("дел в работе:", russian)
+        self.assertIn("ни разу", russian)
+        for english in ("claude in PATH", "database:", "tasks alive", "last sweep", "never"):
+            self.assertNotIn(english, russian, english)
+        self.assertIn("claude in PATH", routine.render_status(routine.status(binary=None), "en"))
+
     def test_both_languages_explain_the_same_four_steps(self):
         english = routine.status(lang="en", platform="darwin", binary=FAKE_CLAUDE)
         russian = routine.status(lang="ru", platform="darwin", binary=FAKE_CLAUDE)
@@ -179,50 +190,83 @@ class Windows(Base):
         self.assertFalse(data["installed"])
         self.assertIn("Routine", data["reason"] + data["how_to"])
 
+    def test_nobody_on_a_mac_is_shown_a_windows_command_to_copy(self):
+        """`routine.py windows` printed the `schtasks /create ...` line first, whatever machine it was run on -
+        an instruction the person cannot follow, in front of somebody who does not know that."""
+        if sys.platform.startswith("win"):
+            self.skipTest("on Windows the command is exactly what should be shown")
+        code, _, out, err = self.cli("windows", "--lang", "ru", env_extra={"CHASECALL_CLAUDE_BIN": FAKE_CLAUDE})
+        self.assertEqual((code, err.strip()), (0, ""))
+        self.assertNotIn("schtasks", out)
+        self.assertNotIn("--allowedTools", out)
+        self.assertIn("это для Windows", out)
+        self.assertIn("Routines -> New routine -> Local", out)
+        code, data, out, _ = self.cli("windows", "--json", env_extra={"CHASECALL_CLAUDE_BIN": FAKE_CLAUDE})
+        self.assertIn("schtasks", data["command"])     # still there for a machine that asks in JSON
+
     def test_without_claude_there_is_nothing_to_schedule(self):
         data = routine.windows(yes=True, platform="win32", binary=None)
         self.assertFalse(data["ok"])
         self.assertFalse(data["installed"])
         self.assertIn("next session", data["reason"])
-        self.assertEqual(self.cli("windows", "--platform", "win32", "--yes", env_extra={"PATH": ""})[0], 3)
 
 
-class Cron(Base):
-    def test_a_line_to_copy_and_nothing_else(self):
-        data = routine.cron(platform="linux", binary=FAKE_CLAUDE)
-        self.assertFalse(data["installed"])
-        self.assertTrue(data["cron_line"].startswith("0 */6 * * * "))
-        self.assertIn("tracker.py", data["cron_line"])
-        self.assertIn("I do not touch your crontab", data["reason"])
-        self.assertEqual(self.files_made(), [])
+class NoCron(Base):
+    """`routine.py cron` and `cron_line()` were in here, unreachable from any skill, while the README sold the
+    absence of cron as a feature ("No cron, nothing hidden"). Code that contradicts the promise is the promise
+    that goes, so the code went instead."""
 
-    def test_the_interval_reaches_the_line(self):
-        self.assertTrue(routine.cron(platform="linux", binary=FAKE_CLAUDE, hours=24)["cron_line"]
-                        .startswith("0 */24 * * * "))
+    def test_there_is_no_cron_anywhere_in_the_script(self):
+        with open(os.path.join(SCRIPTS, "routine.py"), "r", encoding="utf-8") as handle:
+            source = handle.read()
+        for forbidden in ("crontab", "cron_line", "*/%d * * *"):
+            self.assertNotIn(forbidden, source, forbidden)
+        self.assertFalse(hasattr(routine, "cron"))
+        self.assertFalse(hasattr(routine, "cron_line"))
 
-    def test_the_quoting_survives_an_apostrophe_in_the_prompt(self):
-        line = routine.cron_line("/usr/bin/claude")
-        self.assertNotIn("'\"'", line.split(" -p ")[0])
-        self.assertIn("'/usr/bin/claude'", line)
+    def test_the_command_line_does_not_answer_to_cron(self):
+        self.assertEqual(self.cli("cron")[0], 2)
 
-    def test_linux_status_offers_the_line_too(self):
+    def test_on_linux_status_says_what_it_can_and_offers_no_line_to_paste(self):
         data = routine.status(platform="linux", binary=FAKE_CLAUDE)
-        self.assertIn("cron_line", data)
-        self.assertIn("crontab line (put it in yourself)", routine.render_status(data, "en"))
+        self.assertNotIn("cron_line", data)
+        self.assertIn("Routines -> New routine -> Local", routine.render_status(data, "en"))
+
+
+class NothingPretendsToBeAnotherComputer(Base):
+    """`--platform` let anything on the command line make the script describe a machine the person is not
+    sitting at. It stays a named argument of the functions - the tests ask "and on Windows?" - and is gone from
+    the command line."""
+
+    def test_the_flags_only_the_tests_ever_used_are_off_the_command_line(self):
+        for args in (["status", "--platform", "win32"], ["status", "--interval-hours", "12"],
+                     ["windows", "--platform", "win32"]):
+            self.assertEqual(self.cli(*args)[0], 2, args)
+        # `platform=` stays a named argument of the functions, and the Windows tests above are what use it:
+        # they ask "and what would you say on Windows?". A test that only asked the function to hand its own
+        # argument back ("and does `platform="win32"` still say win32?") stood here and proved nothing at all.
 
 
 class CommandLine(Base):
     def test_every_command_answers_in_both_shapes_and_leaves_no_trace(self):
-        for args in (["status"], ["status", "--lang", "ru"], ["prompt"], ["cron"],
-                     ["windows", "--platform", "win32"], ["--lang", "ru", "status"]):
+        for args in (["status"], ["status", "--lang", "ru"], ["prompt"], ["windows"],
+                     ["--lang", "ru", "status"]):
             code, _, out, err = self.cli(*args, env_extra={"CHASECALL_CLAUDE_BIN": FAKE_CLAUDE})
             self.assertEqual((code, err.strip()), (0, ""), args)
             self.assertTrue(out.strip(), args)
-        for args in (["status", "--json"], ["prompt", "--json"], ["cron", "--json"]):
+        for args in (["status", "--json"], ["prompt", "--json"]):
             code, data, _, _ = self.cli(*args, env_extra={"CHASECALL_CLAUDE_BIN": FAKE_CLAUDE})
             self.assertEqual((code, data["ok"]), (0, True), args)
         self.assertEqual(self.files_made(), [])
         self.assertEqual(self.cli("status", "--lang", "klingon")[0], 2)
+
+    def test_the_watch_skill_really_calls_status_so_the_russian_words_can_be_reached(self):
+        """`status` and `--lang` were written and then never called from anywhere: every Russian string in this
+        script was unreachable. Step 1 of the skill runs it now, in the person's language."""
+        with open(os.path.join(ROOT, "skills", "watch", "SKILL.md"), "r", encoding="utf-8") as handle:
+            skill = handle.read()
+        self.assertIn("routine.py status --lang", skill)
+        self.assertIn("Откройте приложение Claude", routine.status(lang="ru", binary=FAKE_CLAUDE)["how_to"])
 
 
 if __name__ == "__main__":

@@ -27,6 +27,7 @@ the lock on the door.
 import json
 import os
 import re
+import shlex
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -48,13 +49,18 @@ READ_ONLY_BINS = {
 GIT_READS = {"status", "log", "diff", "show", "branch", "remote", "ls-files", "blame", "describe", "rev-parse"}
 # Our own scripts touch nothing but our own database, so their arguments are safe even when they are full of
 # frightening words: an evidence line often says "the money is back on the card", and that is not a payment.
-OUR_SCRIPTS = ("tracker.py", "brief.py", "guard.py", "routine.py")
+OUR_SCRIPTS = ("tracker.py", "brief.py", "guard.py", "routine.py", "inbox.py")
 INTERPRETERS = {"python", "python3", "py"}
 # `env` belongs here, not among the readers: `env sendmail them@example.com` still sends the letter.
 PREFIXES = {"sudo", "doas", "time", "nohup", "command", "builtin", "exec", "nice", "xargs", "caffeinate", "env"}
 NOT_READ_ONLY_FLAGS = re.compile(r"(?:^|\s)-(?:-in-?place\b|i\b)|(?:^|\s)-(?:delete|exec|execdir|ok)\b")
-# Command substitution is split out too, so a dangerous command cannot ride inside a harmless one.
-SPLIT_RE = re.compile(r"\|\||&&|[;\n|&]|\$\(|`")
+# Command substitution is split out too, so a dangerous command cannot ride inside a harmless one. The one `|`
+# that is not a pipe is the one in `>|` ("overwrite it even if the shell was told not to"): cut there, and what
+# is left of the line is `echo x >` with nothing after it, and the file being emptied has become a segment of
+# its own that nothing recognises.
+SPLIT_RE = re.compile(r"\|\||&&|[;\n&]|(?<!>)\||\$\(|`")
+# The same operators as whole words, for the one place where the line has already been read with its quotes.
+SHELL_OPERATORS = {";", "&&", "||", "|", "&", ">", ">>", "<", "<<", "2>", "2>>", "&>"}
 ASSIGN_RE = re.compile(r"(?:^|[;&|]\s*)([A-Za-z_][A-Za-z0-9_]*)=([^\s;&|]*)")
 ASSIGNMENT_HEAD = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
 
@@ -76,7 +82,13 @@ NETWORK_WRITE = re.compile(r"-X\s*(?:POST|PUT|PATCH|DELETE)|--data\b|--data-\w+|
                            r"\bwget\b[\s\S]*--post", re.I)
 SQL_DELETE = re.compile(r"\bdelete\s+from\b|\bdrop\s+(?:table|database)\b", re.I)
 PIPE_TO_SHELL = re.compile(r"\|\s*(?:sudo\s+)?(?:sh|bash|zsh|ksh|dash|python3?|perl|ruby|node)\b", re.I)
-REDIRECT_RE = re.compile(r"(?<![0-9&])>>?\s*(\"[^\"]+\"|'[^']+'|[^\s;|&<>]+)")
+# A redirection that empties one of the person's files, in the forms a shell really accepts: `>`, `>>`, a file
+# number in front of it (`2>`, `2>>`) and the "yes, clobber it" form (`>|`). The old pattern refused to look at
+# anything preceded by a digit, so `2> ~/Documents/report.docx` emptied the file in silence, and `>|` fell
+# between the `|` the line is split on and a character class that excludes it. `&>` arrives here already split
+# on its `&`, as a segment beginning with `>`. Nothing is matched after a digit that we have not counted as the
+# file number ourselves, so `2>&1` still finds no target of the person's.
+REDIRECT_RE = re.compile(r"\d*>>?\|?\s*(\"[^\"]+\"|'[^']+'|[^\s;|&<>]+)")
 LONG_DIGITS = re.compile(r"\b\d{14,19}\b")
 
 # The words that make a written-down yes count for a family. Both languages: the person says it in Russian, the
@@ -111,6 +123,34 @@ def expand_simple_variables(command):
 def segments(command):
     """A command line as the separate commands it really is, so a read never covers for a write behind a pipe."""
     return [part.strip() for part in SPLIT_RE.split(command) if part.strip()]
+
+
+def one_command_of_ours(command):
+    """One command, quotes and all, that runs one of our own scripts - and nothing else on the line.
+
+    `segments()` cuts on `;` and `|` without looking at the quotes, which is right when the danger is hidden
+    behind an operator and wrong when the *argument* is a file name from somebody's phone:
+    `inbox.py file-done 'note" ; rm -rf ~ ; "x.txt'` is one command moving one badly named file, and cutting it
+    up turns it into an `rm -rf ~` that never existed. `shlex` reads the quotes the way the shell does: if what
+    comes out is a single command of ours, with no operator of its own, there is nothing here to judge.
+    """
+    if any(mark in command for mark in ("`", "$(", "\n", "\r")):
+        return False                               # a substitution or a second line: more than one command here
+    try:
+        # `punctuation_chars` is what makes this safe: `list; rm -rf ~` has no space before the `;`, and a
+        # plain split would hand back `list;` as a word and call the whole line one command.
+        lexer = shlex.shlex(command, posix=True, punctuation_chars=True)
+        lexer.whitespace_split = True
+        tokens = list(lexer)
+    except ValueError:                             # unbalanced quotes: we do not know what this is
+        return False
+    if not tokens or any(token in SHELL_OPERATORS or token[0] in ";<>|&" for token in tokens):
+        return False
+    while tokens and (ASSIGNMENT_HEAD.match(tokens[0]) or os.path.basename(tokens[0]) in PREFIXES):
+        tokens.pop(0)
+    if not tokens:
+        return False
+    return is_ours(os.path.basename(tokens[0].strip("()`\"'")), tokens[1:])
 
 
 def first_token(segment):
@@ -254,6 +294,8 @@ def dangerous(command):
     command = expand_simple_variables(command)
     if PIPE_TO_SHELL.search(command):
         return "delete", "running a script straight off the network"
+    if one_command_of_ours(command):
+        return None                               # our own script, with a file name from a phone in its hands
     for segment in segments(command):
         for target in REDIRECT_RE.findall(segment):
             if theirs(target):                    # `echo > ~/Documents/report.docx` empties it

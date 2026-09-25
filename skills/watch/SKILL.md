@@ -12,7 +12,20 @@ The user said: $ARGUMENTS
 Claude Code has its own schedules, called **routines**. Chasecall does not install a cron job, a login item or
 anything else behind the user's back; it writes the text that goes into a routine, and the user keeps the switch.
 
-## 1. Say what it is, in two sentences
+## 1. Look first, then say what it is
+
+Before promising anything, ask the machine what is actually possible here - in the user's own language
+(`ru` when they write in Russian, `en` otherwise):
+
+```
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/routine.py status --lang ru
+```
+
+It says whether `claude` is on this computer at all, where the task file is, how many tasks are alive, when they
+were last touched, and the four steps for switching a routine on. If it says `claude` is not in PATH, read that
+line out and stop: there is nothing to set up, and the tasks still wake up in the next session.
+
+Then, in two sentences:
 
 > "Claude Code can start a short session by itself - every morning, say - look at what is overdue, and have the
 > next letters ready when you come back. Nothing is sent, nobody is called, nothing is paid without you: it only

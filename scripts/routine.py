@@ -13,7 +13,13 @@ it hands the person the exact prompt to paste, and says out loud what it cannot 
                          were last swept, and how to switch the Routine on (`--lang ru|en`).
 - `routine.py prompt`  - the ready prompt for the Routine, with the real path of the tracker in it.
 - `routine.py windows` - Windows only: shows the `schtasks` command; installs it only with `--yes` (no TCC there).
-- `routine.py cron`    - Linux: prints a crontab line. We never install it ourselves.
+
+There is deliberately no scheduled-line command here. The README sells the absence of one - "No cron, nothing
+hidden" - and such a line sitting in the code is the very thing we promise not to have, one copy-and-paste
+away. Nothing called it from any skill either.
+
+`--json` gives the same answers as data, for when something needs a fact (is `claude` there, when was the
+last sweep, what would the Windows command be) rather than the screen a person reads.
 
 Standard library only, no network. Runs as a CLI and imports cleanly from the tests.
 """
@@ -30,7 +36,6 @@ if HERE not in sys.path:
 import tracker  # noqa: E402
 
 TRACKER = os.path.join(HERE, "tracker.py")
-BRIEF = os.path.join(HERE, "brief.py")
 TASK_NAME = "chasecall"
 DEFAULT_INTERVAL_HOURS = 6
 LANGS = ("en", "ru")
@@ -86,6 +91,28 @@ MAC_NO_INSTALL = {
 }
 
 
+# The four lines of the status screen. They were English whatever `--lang` said, so a Russian reader got the
+# Russian four steps underneath an English table of contents - and the labels are the half of it that says
+# whether anything is wrong.
+LABELS = {
+    "en": {"head": "chasecall background - %s", "claude": "claude in PATH: ", "db": "database:       ",
+           "alive": "tasks alive:    ", "sweep": "last sweep:     ", "no": "no", "never": "never",
+           "not_yet": " (not created yet)", "ago": "%s ago", "windows": "Windows task: "},
+    "ru": {"head": "chasecall, фоновая работа - %s", "claude": "claude в PATH:   ", "db": "файл с делами:   ",
+           "alive": "дел в работе:    ", "sweep": "последний обход: ", "no": "нет", "never": "ни разу",
+           "not_yet": " (ещё не создан)", "ago": "%s назад", "windows": "Задача для Windows: "},
+}
+
+NOT_WINDOWS = {
+    "en": "this is for Windows; on %s the Routine in the Code tab is the one that works",
+    "ru": "это для Windows; на %s работает Routine во вкладке Code",
+}
+
+
+def in_words(mapping, lang):
+    return mapping.get(lang if lang in mapping else "en", mapping["en"])
+
+
 AUTO = object()   # "look it up yourself"; None means "there is none", which is a thing the tests need to say
 
 
@@ -114,16 +141,6 @@ def claude_argv(binary):
 def windows_argv(binary, hours=DEFAULT_INTERVAL_HOURS):
     inner = subprocess.list2cmdline(claude_argv(binary))
     return ["schtasks", "/create", "/tn", TASK_NAME, "/tr", inner, "/sc", "hourly", "/mo", str(int(hours)), "/f"]
-
-
-def cron_line(binary, hours=DEFAULT_INTERVAL_HOURS):
-    command = "%s -p %s --allowedTools %s" % (_quote(binary or "claude"), _quote(prompt_text()),
-                                              _quote(allowed_tools()))
-    return "0 */%d * * * %s >> ~/.claude/chasecall/routine.log 2>&1" % (int(hours), command)
-
-
-def _quote(text):
-    return "'" + str(text).replace("'", "'\\''") + "'"
 
 
 def last_sweep(now=None):
@@ -192,8 +209,6 @@ def status(lang="en", platform=None, binary=AUTO, hours=DEFAULT_INTERVAL_HOURS):
         data["note"] = MAC_NO_INSTALL.get(lang, MAC_NO_INSTALL["en"])
     elif where == "win32":
         data["windows_command"] = subprocess.list2cmdline(windows_argv(found, hours))
-    else:
-        data["cron_line"] = cron_line(found, hours)
     return data
 
 
@@ -206,7 +221,7 @@ def windows(yes=False, platform=None, binary=AUTO, hours=DEFAULT_INTERVAL_HOURS,
             "command": subprocess.list2cmdline(argv), "argv": argv, "installed": False,
             "interval_hours": int(hours)}
     if where != "win32":
-        data["reason"] = "this is for Windows; on %s use the Routine in the Code tab" % where
+        data["reason"] = in_words(NOT_WINDOWS, lang) % where
         data["how_to"] = HOW_TO.get(lang, HOW_TO["en"])
         return data
     if not found:
@@ -231,33 +246,22 @@ def windows(yes=False, platform=None, binary=AUTO, hours=DEFAULT_INTERVAL_HOURS,
     return data
 
 
-def cron(platform=None, binary=AUTO, hours=DEFAULT_INTERVAL_HOURS, lang="en"):
-    found = claude_bin(binary)
-    data = {"ok": True, "platform": platform_of(platform), "claude": found, "claude_found": bool(found),
-            "cron_line": cron_line(found, hours), "installed": False,
-            "reason": "copy this line into `crontab -e` yourself; I do not touch your crontab",
-            "interval_hours": int(hours)}
-    if not found:
-        data["warning"] = NO_CLAUDE.get(lang, NO_CLAUDE["en"])
-    return data
-
-
 def render_status(data, lang="en"):
-    lines = ["chasecall background - %s" % data["platform"],
-             "  claude in PATH: " + (data["claude"] or "no"),
-             "  database:       " + data["db"] + ("" if data["db_exists"] else " (not created yet)"),
-             "  tasks alive:    %d" % data["open_tasks"],
-             "  last sweep:     " + (("%s (%s ago)" % (tracker.fmt_local(data["last_sweep"]), data["last_sweep_ago"]))
-                                     if data["last_sweep"] else "never")]
+    said = LABELS.get(lang, LABELS["en"])
+    lines = [said["head"] % data["platform"],
+             "  " + said["claude"] + (data["claude"] or said["no"]),
+             "  " + said["db"] + data["db"] + ("" if data["db_exists"] else said["not_yet"]),
+             "  " + said["alive"] + "%d" % data["open_tasks"],
+             "  " + said["sweep"] + (("%s (%s)" % (tracker.fmt_local(data["last_sweep"]),
+                                                   said["ago"] % data["last_sweep_ago"]))
+                                     if data["last_sweep"] else said["never"])]
     if data.get("warning"):
         lines += ["", data["warning"]]
     lines += ["", data["how_to"]]
     if data.get("note"):
         lines += ["", data["note"]]
     if data.get("windows_command"):
-        lines += ["", "Windows task: " + data["windows_command"]]
-    if data.get("cron_line"):
-        lines += ["", "crontab line (put it in yourself): " + data["cron_line"]]
+        lines += ["", said["windows"] + data["windows_command"]]
     return "\n".join(lines)
 
 
@@ -266,44 +270,41 @@ def build_parser():
     # --lang ru` are the same thing.
     # The subcommands get their own copies with no defaults of their own, so a flag given before the command
     # survives (argparse would otherwise let the command's default overwrite it).
+    # `platform` and the interval stay named arguments of the functions - the tests need to ask "and what would
+    # you say on Windows?" - but they are not on the command line: nothing a person types should be able to make
+    # this script describe a machine they are not sitting at.
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--json", action="store_true", default=argparse.SUPPRESS)
     common.add_argument("--lang", choices=list(LANGS), default=argparse.SUPPRESS)
-    common.add_argument("--platform", default=argparse.SUPPRESS,
-                        help="pretend to be darwin|win32|linux (for tests and docs)")
-    common.add_argument("--interval-hours", type=int, default=argparse.SUPPRESS)
     parser = argparse.ArgumentParser(prog="routine.py",
                                      description="chasecall background: honest about what runs")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--lang", choices=list(LANGS), default=os.environ.get("CHASECALL_LANG", "en"))
-    parser.add_argument("--platform", default=None, help="pretend to be darwin|win32|linux (for tests and docs)")
-    parser.add_argument("--interval-hours", type=int, default=DEFAULT_INTERVAL_HOURS)
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("status", parents=[common], help="what we can promise about the background")
     sub.add_parser("prompt", parents=[common], help="the prompt to paste into a Routine")
     p_win = sub.add_parser("windows", parents=[common], help="Windows scheduled task (only with --yes)")
     p_win.add_argument("--yes", action="store_true", help="really create the task")
-    sub.add_parser("cron", parents=[common], help="a crontab line for Linux; we never install it")
     return parser
 
 
 def main(argv=None):
     args = build_parser().parse_args(argv)
     if args.command == "status":
-        data = status(args.lang, args.platform, hours=args.interval_hours)
+        data = status(args.lang)
         text = render_status(data, args.lang)
     elif args.command == "prompt":
-        data = {"ok": True, "prompt": prompt_text(), "allowed_tools": allowed_tools(), "tracker": TRACKER,
-                "brief": BRIEF}
+        data = {"ok": True, "prompt": prompt_text(), "allowed_tools": allowed_tools(), "tracker": TRACKER}
         text = prompt_text()
-    elif args.command == "windows":
-        data = windows(args.yes, args.platform, hours=args.interval_hours, lang=args.lang)
-        text = "\n".join([data["command"], "", data.get("reason", ""),
-                          "installed: yes" if data["installed"] else "installed: no"])
     else:
-        data = cron(args.platform, hours=args.interval_hours, lang=args.lang)
-        text = "\n".join([data["cron_line"], "", data["reason"]] +
-                         ([data["warning"]] if data.get("warning") else []))
+        data = windows(args.yes, lang=args.lang)
+        if data["platform"] == "win32":
+            text = "\n".join([data["command"], "", data.get("reason", ""),
+                              "installed: yes" if data["installed"] else "installed: no"])
+        else:
+            # A `schtasks /create ...` line on a Mac is an instruction the person cannot follow, in front of
+            # somebody who does not know that. They get the reason and the Routine steps, and nothing to copy.
+            text = "\n".join([data.get("reason", ""), "", data.get("how_to", "")])
     print(json.dumps(data, ensure_ascii=False, indent=2) if args.json else text)
     return 0 if data.get("ok", True) else 3
 

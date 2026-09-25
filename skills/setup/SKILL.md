@@ -2,7 +2,7 @@
 name: setup
 description: First run of Chasecall. Creates the task file, says in three phrases what the user can ask for, checks whether background work is possible on this computer, and takes the first task if there is one. Run /chasecall:setup once after installing.
 disable-model-invocation: true
-allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py *) Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/brief.py *)
+allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py *) Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/inbox.py *)
 ---
 
 # Chasecall setup
@@ -52,35 +52,68 @@ If the user is in a cloud session rather than on their own computer, plugins are
 would not be reading this. Should a task or a routine seem to be missing later, that is the first thing to check:
 Chasecall works in the local session of the Claude app (the Code tab on this computer) or in a terminal.
 
-## 4. The weekly look at what is new
+## 4. The one real question - ask it before anything else you could ask
+
+This is what they came for. It goes first, not third:
+
+> "What are you waiting on right now that nobody has answered?"
+
+- They name something: go to the `take` skill and do the first step now. Come back to steps 5 and 6 afterwards,
+  if the conversation still has room; a person who has just watched their real problem get taken seriously will
+  answer two more questions. A person asked three questions first will not get that far.
+- They have nothing right now: say "Then tell me the moment something starts dragging," and go on to step 5.
+
+Do not ask about e-mail addresses, schedules, languages or preferences. Everything else is asked once, in the
+task where it is needed.
+
+## 5. The folder your phone can see (one question, one explanation, then let it go)
+
+Ask it once, in their own words:
+
+> "Is there a folder that both your phone and this computer can see - one in Google Drive or Dropbox?"
+
+**Yes, and they give the path:**
+
+```
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/inbox.py folder --set "<path>" --lang ru
+```
+
+Then one sentence and nothing more: "Put a photo or a note in there from the street, and I will sort it out when
+we next talk." If the script refuses the folder - the home folder, `Documents`, somewhere with hundreds of files
+in it - read its answer out and ask for a folder of its own inside the cloud folder.
+
+**"I do not know"** - the most likely answer, and it must not be the end of it. Explain once, in two sentences
+with no special words, and then ask again:
+
+> "There are folders that live on both at once - you put something in on the phone, and a minute later it is on
+> the computer by itself. Google Drive and Dropbox both do that. If you have ever seen a folder appear on the
+> computer after you saved something on the phone, that is the one I mean."
+
+Still no, or still not sure: "Then we will do without it - everything else works exactly the same." Move on. Do
+not compare the two services, do not offer to set one up, do not name a third, and do not ask a third time.
+
+**No:** move on at once, with the same one line.
+
+## 6. The weekly look at what is new
 
 Say one sentence and take one yes:
 
 > "Once a week I can look at what is new in this kind of work and tell you only what would change your own
 > tasks — three things at most. Shall I?"
 
-On a yes, make it a task like any other, so the brief reminds you:
+On a yes, make it a task like any other, so the brief reminds you - **with the title in their language**, because
+it will appear in their brief as a line they did not write themselves:
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py add "Look at what is new" --goal "Three things at most that would change this person's own tasks, or an honest nothing" --channel web --every 7d --standing
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py add "Посмотреть, что нового" --goal "Не больше трёх вещей, которые меняют дела этого человека, или честное «ничего»" --channel web --every 7d --standing
 ```
 
-(One line, as written. It is a standing reminder, not something to chase: nobody is being written to.)
+In English, the same one line with `"Look at what is new"` and the goal `"Three things at most that would change
+this person's own tasks, or an honest nothing"`. It is a standing reminder, not something to chase: nobody is
+being written to.
 
 On a no, do not ask again. Nothing is installed either way; the weekly look happens inside a normal session
 (the `scout` skill).
-
-## 5. The one real question, then stop
-
-Besides the yes or no above, ask this and nothing else:
-
-> "What are you waiting on right now that nobody has answered?"
-
-- They name something: go to the `take` skill and do the first step now.
-- They have nothing: finish with "Then we are set. Tell me when something starts dragging." and stop.
-
-Do not ask about e-mail addresses, schedules, languages or preferences. Everything else is asked once, in the
-task where it is needed.
 
 ## Never
 
@@ -90,5 +123,6 @@ task where it is needed.
 - Never write to anyone between 22:00 and 08:00 local time.
 - Never more than three pushes on one channel; after that ask the user to step in.
 - Never touch the user's files. The only file Chasecall writes is its own database
-  (`~/.claude/chasecall/chasecall.db`, or wherever `CHASECALL_DB` points).
+  (`~/.claude/chasecall/chasecall.db`, or wherever `CHASECALL_DB` points) - and, later and only after a separate
+  yes, its own brief inside the one folder the user names here.
 - Never install a schedule, a login item or a cron job during setup.

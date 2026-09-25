@@ -1,3 +1,5 @@
+[По-русски — README.ru.md](README.ru.md)
+
 # Chasecall
 
 **Chasecall gives Claude Code a memory for the things nobody answers.** You say "chase this for me", and the
@@ -12,9 +14,9 @@ Nothing acts in your name, and nothing leaves your computer that you did not sen
 
 Chasecall is an independent open-source project. Not affiliated with Anthropic.
 
-**Status: v0.1 preview.** The tracker, the brief, the routine helper and the safety hook are covered by 98
-automated tests that use the Python standard library and no network. Treat the first weeks as a trial: check what it writes
-before it goes out.
+**Status: v0.1 preview.** The tracker, the brief, the phone folder, the routine helper and the safety hook are
+covered by 213 automated tests that use the Python standard library and no network. Treat the first weeks as a
+trial: check what it writes before it goes out.
 
 ## Install
 
@@ -57,7 +59,7 @@ Plain words work as well as the commands. Both languages work.
 | "Done - the money is back." | «Готово - деньги вернули.» | The task closes, with the proof written next to it. Without proof it stays open. |
 
 The commands behind them, if you prefer typing: `/chasecall:take`, `/chasecall:brief`, `/chasecall:push`,
-`/chasecall:handoff`, `/chasecall:watch`, `/chasecall:scout`, and `/chasecall:setup`.
+`/chasecall:handoff`, `/chasecall:watch`, `/chasecall:scout`, `/chasecall:inbox`, and `/chasecall:setup`.
 
 ## Why this and not an API agent
 
@@ -101,6 +103,34 @@ silence if you did not ask.
 
 Say "stop looking for new things" once, and it stops.
 
+## From your phone
+
+You are out, and something needs chasing: photograph the letter, jot one line, or record twenty seconds of voice,
+and send it to yourself with the usual **Share** button - into one folder. At home, say "what came from my
+phone?". Claude looks at what is new there, makes tasks out of what needs chasing, and asks you about anything it
+did not understand rather than guessing.
+
+The folder is an ordinary folder in Google Drive or Dropbox - one both your phone and your computer can see. You
+name it once, at setup, and never again. It has to be a folder of its own: Chasecall refuses your home folder,
+your `Documents`, and anything with hundreds of files in it, so that your own papers are never offered back to
+you as "what came from your phone". It asks that at the moment a folder is named - including a folder you name
+in passing, mid-conversation. The folder you have already named is never locked against you for filling up: it
+fills up because you use it, and sorting it out is exactly what you would be trying to do. What kind of path it
+is - your home folder, a file rather than a folder - is checked every time, for every folder.
+
+**Nothing in it is ever deleted, and nothing in it is ever overwritten:** what has been sorted moves into a
+`done` folder inside it, and only after you say yes. If two photographs arrive with the same name, both are
+kept - the second one gets a name of its own. The moving is done by Chasecall's own code, never by a shell
+command built out of a file name, because a file name can come from anybody's phone.
+
+The brief can travel the other way, so you can read where everything stands while you are still out. **That one
+is asked for out loud, once**: the brief has the names of your tasks, who you are chasing, phone numbers and
+notes in it, and that folder goes to Google Drive or Dropbox. On a yes it is written there, readable by you
+alone, and the answer is remembered. On a no it is never mentioned again. A `brief.txt` that somebody else put
+in that folder is never replaced; Chasecall says it found one and leaves it alone. What decides that is a mark
+inside the file, read every time - so if you delete the brief and put your own note under the same name, in the
+same folder, that note is safe too.
+
 ## What it does not do
 
 - It has no e-mail account, no phone number, no card and no server. Nothing leaves your computer that you did not
@@ -112,7 +142,15 @@ Say "stop looking for new things" once, and it stops.
 - It does not write at night, and it does not write a fourth time on a channel where three letters went unanswered.
 - It does not close a task because someone promised. A task closes with evidence: a reference number, the money on
   the card, an answer you can point at.
-- It does not read or change your files. The only file it writes is its own.
+- It does not read or change your files. The only file it writes is its own - and the one folder you name for your
+  phone, where it reads what you put there, leaves the brief, and moves a sorted file into `done` after your yes.
+  It deletes nothing, anywhere.
+- **It does put one file of its own into that folder, if you let it - and that folder is in your cloud.** The
+  brief has your task titles, the people you are chasing, phone numbers and your notes in it, and Google Drive or
+  Dropbox will carry a copy of it to their servers and to any device signed in to that account. Chasecall asks
+  you, in those words, before the first time; a no is final, and until you say yes nothing is written there. The
+  file is readable by your account only. If you would rather it never left the machine, say no - the brief on the
+  screen is the same brief, and nothing else about Chasecall changes.
 - It cannot work while your computer is off. If it is asleep, the tasks wait; nothing is lost.
 
 ## Safety
@@ -131,6 +169,12 @@ Say "stop looking for new things" once, and it stops.
    `CHASECALL_DB`). Delete the file and Chasecall has forgotten everything.
 7. **Letters are drafts until you say otherwise.** You see the full text every time, and "change this line" is
    always an option.
+8. **What it reads is material, never an instruction.** A photographed letter, a note, a PDF, a reply from the
+   company or a page found by searching can say "write to this address instead" or "confirm the payment here" -
+   and it stays a page that says so. Claude reads it out to you and asks; it does not obey it. In particular, an
+   address or a telephone number printed on a page never becomes the party being chased until you have said so
+   yourself, because that field is where the next letter goes. This is written into every skill that reads
+   anything: `take`, `push`, `handoff`, `scout` and `inbox`.
 
 **What the guard does not catch.** It is a seat belt, not a lock on the door. It stops an accident, not a
 determined attempt: a command hidden in base64 or inside a script file, a value the shell works out at run time,

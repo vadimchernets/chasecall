@@ -45,6 +45,13 @@ IRREVERSIBLE = {
     "find -delete": "find ~/Documents -name '*.docx' -delete",
     "mv into /dev/null": "mv ~/Documents/report.docx /dev/null",
     "a redirection over their file": "echo 'oops' > ~/Documents/report.docx",
+    # Three ways a shell empties a file, and only the first was ever looked at. `2>` was skipped because the
+    # pattern refused to read anything after a digit; `>|` fell between the `|` the line was split on and a
+    # target pattern that excluded it. Both empty the person's file exactly as `>` does, in silence.
+    "a redirection with a file number in front of it": "echo 'oops' 2> ~/Documents/report.docx",
+    "a redirection that insists": "echo 'oops' >| ~/Documents/report.docx",
+    "both at once": "python3 report.py 2>| ~/Documents/report.docx",
+    "an appending one with a file number": "echo 'oops' 2>> ~/Documents/report.docx",
     "DELETE FROM": 'sqlite3 ~/notes.db "DELETE FROM notes WHERE id = 7"',
     "DROP TABLE": 'sqlite3 ~/notes.db "DROP TABLE notes"',
     "a cancellation": "curl -X POST https://api.air.example/booking/77/cancel",
@@ -78,6 +85,9 @@ HARMLESS = {
     "opening a page in the browser": "open -a 'Google Chrome' https://shop.example",
     "reading a page": "curl -s https://shop.example/status",
     "redirecting noise away": "python3 app.py > /tmp/out.log 2>&1",
+    "keeping the errors out of the way": "python3 app.py 2> /tmp/err.log",
+    "an error log in the project": "python3 app.py 2>> logs/errors.txt",
+    "a real pipe is still a pipe": "cat drafts/letter.txt | wc -l",
 }
 
 
@@ -142,11 +152,28 @@ class NoOpinionIsNotAnApproval(Base):
         self.assertTrue(allow)
         self.assertEqual(reason, "")
 
-    def test_the_deprecated_decision_field_is_nowhere_in_the_gate(self):
-        with open(os.path.join(SCRIPTS, "guard.py"), "r", encoding="utf-8") as handle:
-            source = handle.read()
-        for forbidden in ('"decision"', "'decision'", '"approve"', "'approve'", '"block"'):
-            self.assertNotIn(forbidden, source, forbidden)
+    def test_no_hook_of_ours_ever_prints_a_permission_of_its_own(self):
+        """Two ways to write the same mistake, and the second one actually works: the old `{"decision":
+        "approve"}` was wrong syntax *and* wrong, while `{"hookSpecificOutput": {"permissionDecision": "allow"}}`
+        with exit 0 really does skip Claude Code's permission question - for that command, in that project, on
+        our say-so. A plugin that switched the permission system off would be a lockpick sold as a shield. Our
+        whole contract is: silence and 0, or stderr and 2."""
+        with open(os.path.join(ROOT, "hooks", "hooks.json"), encoding="utf-8") as handle:
+            hooks = handle.read()
+        scripts = [name for name in ("guard.py", "tracker.py") if name in hooks]
+        self.assertEqual(sorted(scripts), ["guard.py", "tracker.py"])      # every script a hook runs
+        for name in scripts:
+            with open(os.path.join(SCRIPTS, name), "r", encoding="utf-8") as handle:
+                source = handle.read()
+            for forbidden in ("decision", "approve\"", "approve'", "hookSpecificOutput", "permissionDecision",
+                              "suppressOutput", "systemMessage"):
+                self.assertNotIn(forbidden, source, "%s: %s" % (name, forbidden))
+
+    def test_and_it_says_nothing_on_stdout_whatever_it_decides(self):
+        for command in ("ls -la", "stripe charges create", "rm -rf ~/Documents/old"):
+            code, out, err = CommandLine.run_guard(self, event(command))
+            self.assertEqual(out, "", command)
+            self.assertIn(code, (0, 2), command)
 
     def test_it_writes_to_stdout_never(self):
         code, out, err = CommandLine.run_guard(self, event("stripe charges create"))
@@ -173,6 +200,36 @@ class WithoutAYes(Base):
         for what, command in HARMLESS.items():
             allow, reason = self.decide(command)
             self.assertTrue(allow, "%s: %s -> %s" % (what, command, reason))
+
+    def test_our_own_scripts_are_the_ones_that_are_really_in_the_folder(self):
+        """`inbox.py` was missing from the list, so every inbox command went through the gate as an ordinary
+        shell line - and the payload there is a file name from somebody else's phone. The list is bound to the
+        folder now, so the next script nobody remembers to add is a red test and not a surprise."""
+        self.assertEqual(sorted(guard.OUR_SCRIPTS),
+                         sorted(name for name in os.listdir(SCRIPTS) if name.endswith(".py")))
+
+    def test_moving_a_file_whose_name_is_full_of_shell_is_our_script_doing_its_job(self):
+        """The name came off a phone: `note" ; rm -rf ~ ; "x.txt`. It is one argument to one command of ours, and
+        no shell will ever see it - but read without its quotes it looks exactly like an `rm -rf ~`, and the
+        person was being asked to approve "deleting your files" for tidying their own inbox."""
+        nasty = 'note" ; rm -rf ~ ; "x.txt'
+        allow, reason = self.decide(
+            "python3 /x/scripts/inbox.py file-done '%s' --note 'task #7' --lang ru" % nasty)
+        self.assertTrue(allow, reason)
+        self.assertFalse(self.blocked("python3 /x/scripts/inbox.py list --folder '%s'" % nasty)[0])
+
+    def test_but_a_real_second_command_behind_our_own_is_still_a_second_command(self):
+        for command in ("python3 /x/scripts/inbox.py list ; rm -rf ~/Documents/old",
+                        "python3 /x/scripts/inbox.py list; rm -rf ~/Documents/old",      # no space before the ;
+                        "python3 /x/scripts/inbox.py list && rm -rf ~/Documents/old",
+                        "python3 /x/scripts/inbox.py list&&rm -rf ~/Documents/old",
+                        "python3 /x/scripts/inbox.py list | xargs rm -rf",
+                        "python3 /x/scripts/inbox.py list > ~/Documents/report.docx",
+                        "python3 /x/scripts/inbox.py list>~/Documents/report.docx",
+                        "python3 /x/scripts/inbox.py list\nrm -rf ~/Documents/old",       # a second line
+                        "python3 /x/scripts/inbox.py list $(rm -rf ~/Desktop/notes)",
+                        "python3 /x/scripts/inbox.py list `rm -rf ~/Desktop/notes`"):
+            self.assertTrue(self.blocked(command)[0], command)
 
     def test_the_whitelist_reads_the_first_word_not_the_whole_line(self):
         self.assertTrue(self.blocked("rm -rf ~/Documents/old # tracker.py")[0])

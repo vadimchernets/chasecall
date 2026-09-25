@@ -32,6 +32,37 @@ NIGHT_END = 8      # local hour when we may write again
 DEFAULT_INTERVAL = "24h"
 DEFAULT_MAX_ATTEMPTS = 3
 
+# The background routine and a live session share one database file. How long we wait for the other one to
+# finish writing before we give up - and what we say when we do, because a person aged 68 is not going to be
+# shown a Python traceback. Both languages: this sentence reaches the person through `brief.py --lang ru` and
+# `inbox.py --lang ru`, and an English one there would be the only English line on their screen.
+BUSY_WAIT_SECONDS = 10.0
+BUSY_MESSAGES = {
+    "en": ("the task file is busy right now - something else is writing to it. Nothing was changed; "
+           "try again in a moment."),
+    "ru": ("файл с делами сейчас занят - в него пишет что-то другое. Ничего не изменено, "
+           "попробуйте ещё раз через минуту."),
+}
+# Not the same thing at all, and the difference is the whole of the advice: a lock passes by itself in a moment,
+# permissions do not, and "try again in a moment" sends the person round that loop for ever.
+UNWRITABLE_MESSAGES = {
+    "en": ("the task file %s cannot be written to - the permissions on it do not allow it. Nothing was changed, "
+           "and this one will not pass by itself."),
+    "ru": ("в файл с делами %s не записать - права на него этого не позволяют. Ничего не изменено, и само это "
+           "не пройдёт."),
+}
+# And the third thing that can be wrong with a file: it is not our file. A text file, half a download, or a
+# database somebody else made with a `tasks` of their own that is not a table. We read nothing out of it and we
+# write nothing into it - and the person is told which file we mean, because they chose it.
+NOT_OURS_MESSAGES = {
+    "en": ("%s is not a Chasecall task file - nothing was read from it and nothing was written to it. Move it "
+           "aside, or say where the real one is."),
+    "ru": ("%s - это не файл дел Chasecall: из него ничего не прочитано и в него ничего не записано. Уберите "
+           "его в сторону или скажите, где настоящий."),
+}
+BUSY_WORDS = ("locked", "busy")                    # what sqlite says when it is the other process, not the mode
+PERMISSION_WORDS = ("readonly", "read-only", "permission", "denied", "unable to open")
+
 DUR_RE = re.compile(r"^\s*(\d+)\s*([mhdw])\s*$", re.IGNORECASE)
 DUR_UNITS = {"m": "minutes", "h": "hours", "d": "days", "w": "weeks"}
 
@@ -68,12 +99,43 @@ CREATE INDEX IF NOT EXISTS idx_events_task ON events(task_id, ts);
 TASK_FIELDS = ("id", "title", "goal", "channel", "counterpart", "state", "attempts", "max_attempts",
                "next_step_at", "interval", "created_at", "updated_at", "evidence", "needs_human", "human_note",
                "standing")
-# Columns added after the first release. A database made by an older version is quietly brought up to date.
-MIGRATIONS = ("ALTER TABLE tasks ADD COLUMN standing INTEGER NOT NULL DEFAULT 0",)
+# There is deliberately no migration list here. `standing` has been in SCHEMA since before the first release, so
+# the one `ALTER TABLE ... ADD COLUMN standing` that used to sit here could only ever fail and be swallowed -
+# a line that looked like care for old databases while doing nothing, on a version that has no old databases.
+# When a column really is added later, it belongs here with a test that a database without it is brought up to
+# date, not with a bare `except: pass`.
 
 
 class TrackerError(Exception):
     """Something the person (or the skill) asked for that we refuse to do, with a reason they can read."""
+
+
+def in_words(mapping, lang):
+    return mapping.get(lang if lang in mapping else "en", mapping["en"])
+
+
+def db_trouble(exc, path=None, lang="en"):
+    """The sentence for a database we could not prepare: the person's language, and the right problem.
+
+    Three different accidents with opposite advice, and telling them apart is the whole point: the other process
+    will be finished in a moment, the permissions will not change by themselves, and a file that is not ours will
+    never become ours. One sentence for all three sent a person with a read-only file round the same loop for ever.
+    """
+    text = str(exc).lower()
+    if any(word in text for word in BUSY_WORDS):
+        return TrackerError(in_words(BUSY_MESSAGES, lang))
+    if any(word in text for word in PERMISSION_WORDS):
+        return TrackerError(in_words(UNWRITABLE_MESSAGES, lang) % (path or db_path()))
+    return TrackerError(in_words(NOT_OURS_MESSAGES, lang) % (path or db_path()))
+
+
+def tables_of(conn, names):
+    """Which of `names` are really tables in this database - asked after the CREATEs, because a statement that
+    ran is not the same thing as a table that is there: `CREATE TABLE IF NOT EXISTS tasks` is a silent no-op on a
+    database where `tasks` is somebody's view, and every line after it would be a traceback."""
+    holes = ", ".join("?" for _ in names)
+    return {row[0] for row in conn.execute(
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN (%s)" % holes, tuple(names)).fetchall()}
 
 
 # ---------------------------------------------------------------- time
@@ -165,22 +227,31 @@ def db_path():
     return os.path.expanduser(os.environ.get("CHASECALL_DB") or DEFAULT_DB)
 
 
-def connect(path=None):
-    """Open (and on first use create) our own database. Nothing outside this file is ever written."""
+def connect(path=None, lang="en"):
+    """Open (and on first use create) our own database. Nothing outside this file is ever written.
+
+    A background routine run and a live session share this one file, so a write may find it locked. `timeout` is
+    sqlite's own busy timeout: we wait that long for the other process instead of failing at once, and if the
+    wait runs out we say it in one sentence the person can read - in their language, and never as a traceback.
+    """
     path = path or db_path()
     folder = os.path.dirname(os.path.abspath(path))
     if folder and not os.path.isdir(folder):
         os.makedirs(folder, mode=0o700, exist_ok=True)
     fresh = not os.path.exists(path)
-    conn = sqlite3.connect(path)
+    conn = sqlite3.connect(path, timeout=BUSY_WAIT_SECONDS)
     conn.row_factory = sqlite3.Row
-    conn.executescript(SCHEMA)
-    for statement in MIGRATIONS:
-        try:
-            conn.execute(statement)
-        except sqlite3.OperationalError:
-            pass                                  # the column is already there: an up-to-date database
-    conn.commit()
+    try:
+        conn.executescript(SCHEMA)
+        conn.commit()
+    except sqlite3.DatabaseError as exc:           # locked, read-only, or not a database at all
+        conn.close()
+        raise db_trouble(exc, path, lang)
+    # There is no "and are the tables really there?" check here, and it is not an oversight. Both our tables are
+    # indexed by SCHEMA, and `CREATE INDEX ... ON tasks(...)` refuses out loud on anything called `tasks` that is
+    # not a table - so by this line they exist. A check that cannot be made to fail is not a guard, it is a line
+    # nobody can test; `inbox.migrate` keeps one because there it really can fire (`inbox_settings` has no index)
+    # and a test makes it fire.
     if fresh:
         try:                                      # letters and phone numbers: readable by their owner only
             os.chmod(path, 0o600)
@@ -521,7 +592,8 @@ def build_parser():
     p_add.add_argument("--counterpart", default="")
     p_add.add_argument("--every", default=DEFAULT_INTERVAL, help="how often to come back: 24h, 3d, 1w")
     p_add.add_argument("--first-step-now", action="store_true", help="the first step is due right now")
-    p_add.add_argument("--max-attempts", type=int, default=DEFAULT_MAX_ATTEMPTS)
+    # No `--max-attempts` on the command line on purpose: three pushes on one channel is a promise the README
+    # makes to the person, not a number a session may raise because this task feels important today.
     p_add.add_argument("--standing", action="store_true",
                        help="a habit, not a chase: it repeats forever, counts no attempts, calls nobody in")
 
@@ -559,12 +631,26 @@ def build_parser():
     return parser
 
 
+def nothing_yet(now=None):
+    """The answer `due` gives when there is no task file at all: nothing is due, and nobody has been told."""
+    now = now or now_utc()
+    return {"ok": True, "now": iso(now), "night": is_night(local_of(now)), "night_until": None,
+            "count": 0, "tasks": [], "blocked_count": 0, "blocked": []}
+
+
 def run(args):
+    if args.command == "due" and getattr(args, "brief", False) and not os.path.exists(db_path()):
+        # `due --brief` is what the SessionStart hook runs, at the start of every session on this computer -
+        # before `/chasecall:setup`, and before the person has agreed to anything at all. Opening the database
+        # here created `~/.claude/chasecall/chasecall.db` on its own, while the setup skill's first step says in
+        # as many words that it is the one that makes it. There is nothing to show a person whose file does not
+        # exist yet, so we make nothing and say nothing. Every other command creates it as it always did.
+        return nothing_yet()
     conn = connect()
     try:
         if args.command == "add":
             return add(conn, args.title, args.goal, args.channel, args.counterpart, args.every,
-                       args.first_step_now, args.max_attempts, args.standing)
+                       args.first_step_now, DEFAULT_MAX_ATTEMPTS, args.standing)
         if args.command == "due":
             return due(conn)
         if args.command == "list":
