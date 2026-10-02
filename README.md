@@ -2,6 +2,8 @@ Languages: English · [Русский](README.ru.md)
 
 # Chasecall
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23107733.svg)](https://doi.org/10.5281/zenodo.23107733)
+
 **Chasecall gives Claude Code a memory for the things nobody answers.** You say "chase this for me", and the
 task stays alive between sessions: Claude writes down what counts as done, drafts the first letter, comes back
 to it days later with a new angle, counts the attempts, and tells you the moment the job needs your voice, your
