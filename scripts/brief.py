@@ -5,10 +5,12 @@ Product rule this file defends: the person must never have to ask "what is happe
 never discover a task only when it is too late. Everything a chased task can be is on this one screen, and the
 line that matters most - what we cannot do without them - is always there, even when it is empty.
 
-The repository speaks English; this screen speaks to the person, so it is bilingual: `--lang ru|en`.
+The repository speaks English; this screen speaks to the person, in any of the five languages the plugin
+knows: `--lang en|ru|es|pt|uk`.
 
-With `--to <folder>` the same screen is also left as a file (`сводка.txt`, or `brief.txt` in English) in the
-folder the phone can see, so the person can read it in the street without asking anyone.
+With `--to <folder>` the same screen is also left as a file (`brief.txt` in English, or the matching
+per-language name from lang/<code>.json's "brief.file" - e.g. lang/ru.json's) in the folder the phone can
+see, so the person can read it in the street without asking anyone.
 
 That folder is usually Google Drive or Dropbox, so the file leaves the computer - and the brief carries the
 titles of the tasks, who is being chased, phone numbers and notes. The product's first promise is that nothing
@@ -40,7 +42,7 @@ if HERE not in sys.path:
 import inbox  # noqa: E402
 import tracker  # noqa: E402
 
-LANGS = ("en", "ru")
+LANGS = tracker.LANGS
 
 # What the command line says when the brief itself is fine and the copy in the folder is not: the person asked
 # for a file in their cloud folder and there is no file there. 1 is kept for "no brief at all".
@@ -56,86 +58,9 @@ MARK_WINDOW = 8192
 CONSENT_KEY = "brief_to:%s"        # -> "yes" | "no", one answer per folder, remembered
 FILE_KEY = "brief_file:%s"         # -> "ours", the paths we have written; a hint for the refusal, never a permission
 
-WORDS = {
-    "en": {
-        "header": "chasecall - %s",
-        "done": "Done in the last 24 hours",
-        "waiting": "Waiting for an answer",
-        "needs_you": "Needs you",
-        "mine": "I take these today",
-        "empty_all": "Nothing on the list yet. Say: \"chase <the thing>\" - and I will take it and keep at it.",
-        "empty_section": "  nothing",
-        "next_step": "next step",
-        "attempt": "attempt",
-        "evidence": "proof",
-        "goal": "goal",
-        "night": "Night window %02d:00-%02d:00: I am not writing to anyone now, I will send in the morning.",
-        "nothing_for_you": "  nothing - you do not have to do anything right now",
-        "out_of_attempts": "attempts used up, I am handing it over",
-        "tail": "One line for you: %s",
-        "tail_nothing": "nothing is waiting on you",
-        "tail_some": "%d task(s) wait for your move",
-        "file": "brief.txt",
-        "updated": ("Updated %s (" + MARK + "). This file is rewritten every time; nothing else in the folder "
-                    "is touched."),
-        "ask": ("I can leave this brief in that folder as a file, so you can read it on your phone. It has the "
-                "names of your tasks in it, who you are chasing, the phone numbers and the notes. That folder "
-                "goes to your cloud - Google Drive or Dropbox - so the file goes there too. Shall I?"),
-        "not_agreed": ("nothing was written: nobody has said yes to leaving the brief in %s, and it travels to "
-                       "the cloud from there"),
-        "ask_how": ("ask the person the question above, in their own words, and run the same command with "
-                    "--agreed on a yes, or with --declined on a no"),
-        "declined": "the brief is not left in %s: the person said no. Nothing was written.",
-        "occupied": ("there is already a file called %s in %s and it is not ours. It was left exactly as it is "
-                     "and nothing was written - ask the person what that file is, or use another folder."),
-        "occupied_again": ("the file called %s in %s is not the one we wrote: our brief is gone from there and "
-                           "somebody else's file is under that name now. It was left exactly as it is and "
-                           "nothing was written - ask the person what that file is, or use another folder."),
-        "no_folder": "say which folder the brief should be left in",
-        "not_here": "the folder %s is not on this computer right now; the brief was not written",
-        "bad_folder": "%s",
-        "failed": "could not write %s: %s",
-    },
-    "ru": {
-        "header": "chasecall - %s",
-        "done": "Сделано за сутки",
-        "waiting": "Ждёт ответа",
-        "needs_you": "Нужно от вас",
-        "mine": "Возьму сам сегодня",
-        "empty_all": "Пока пусто. Скажите: «добейся <чего>» - и я возьму дело и буду вести его до результата.",
-        "empty_section": "  ничего",
-        "next_step": "следующий шаг",
-        "attempt": "попытка",
-        "evidence": "доказательство",
-        "goal": "цель",
-        "night": "Ночное окно %02d:00-%02d:00: сейчас никому не пишу, отправлю утром.",
-        "nothing_for_you": "  ничего - от вас сейчас ничего не требуется",
-        "out_of_attempts": "попытки кончились, передаю вам",
-        "tail": "Одной строкой: %s",
-        "tail_nothing": "от вас сейчас ничего не нужно",
-        "tail_some": "дел, ждущих вашего шага: %d",
-        "file": "сводка.txt",
-        "updated": ("Обновлено %s (" + MARK + "). Файл переписывается заново каждый раз; больше в этой папке "
-                    "ничего не трогается."),
-        "ask": ("Я могу класть эту сводку в ту папку файлом, чтобы вы читали её с телефона. В ней названия "
-                "ваших дел, с кем вы их ведёте, телефоны и заметки. Эта папка уходит в ваше облако - Google "
-                "Диск или Dropbox, - значит, и файл уедет туда. Класть?"),
-        "not_agreed": ("ничего не записано: никто не говорил «да» на то, чтобы сводка лежала в %s, а оттуда "
-                       "она уезжает в облако"),
-        "ask_how": ("задайте человеку вопрос выше его словами и повторите ту же команду с --agreed на «да» "
-                    "или с --declined на «нет»"),
-        "declined": "сводку в %s не кладу: человек сказал «нет». Ничего не записано.",
-        "occupied": ("файл %s в папке %s уже есть, и он не наш. Он оставлен как есть, ничего не записано - "
-                     "спросите человека, что это за файл, или возьмите другую папку."),
-        "occupied_again": ("файл %s в папке %s - не тот, что писали мы: нашей сводки там больше нет, а под этим "
-                           "именем лежит чужой файл. Он оставлен как есть, ничего не записано - спросите "
-                           "человека, что это за файл, или возьмите другую папку."),
-        "no_folder": "скажите, в какую папку класть сводку",
-        "not_here": "папки %s сейчас нет на этом компьютере; сводка не записана",
-        "bad_folder": "%s",
-        "failed": "не удалось записать %s: %s",
-    },
-}
+# Every line of the brief comes from lang/<code>.json now (key "brief") - one table per language, on equal
+# footing, built once at import time. The mark baked into "updated" there already matches MARK above.
+WORDS = {code: tracker.load_lang(code)["brief"] for code in LANGS}
 
 
 def collect(conn, now=None, local=None):

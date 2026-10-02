@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.1.2 — 2026-10-02
+
+- Every per-language word table (brief, inbox, routine, tracker, the guard's yes-phrase stems) moved out of
+  the scripts and into `lang/<code>.json`, loaded once at import time from `Path(__file__).resolve().parent.parent
+  / "lang"`. The scripts carry no per-language text of their own any more; adding or changing a language is
+  an edit to `lang/`, not to a script.
+- Spanish, Portuguese and Ukrainian added as full equals to English and Russian: `--lang en|ru|es|pt|uk`
+  everywhere a language is chosen, a `lang/<code>.json` table for each, and guard stems for each so a yes said
+  in any of the five is recognised.
+- A `check_language.py` check (and its own test) now runs over the whole repository: every file git knows
+  about is read for Cyrillic outside a language place - a path under `ru/` or `uk/`, a `README.ru.md`-shaped
+  name, `lang/ru.json`/`lang/uk.json`, or the self-names "Русский"/"Українська" in a language list.
+- Guard stems written `^stem` in `lang/<code>.json` match only at the start of a word, so one language's
+  stem cannot open the gate on another language's word (`pagar` inside Portuguese `apagar`, `pag` inside `page`).
+
 ## 0.1.1 — 2026-10-02
 
 - Project language is English: comments, skill instructions, docs and default messages translated; Russian kept only as a localization (README.ru.md, per-language word tables, ru test fixtures).

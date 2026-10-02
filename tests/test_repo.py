@@ -12,6 +12,10 @@ import shlex
 import sys
 import unittest
 
+import json as _json
+from pathlib import Path as _Path
+_RU = _json.loads((_Path(__file__).resolve().parent / "fixtures" / "ru" / "test_repo.json").read_text(encoding="utf-8"))
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKILLS = ["setup", "take", "push", "brief", "watch", "handoff", "scout", "inbox"]
 SCRIPTS = ["tracker.py", "brief.py", "guard.py", "routine.py", "inbox.py"]
@@ -173,7 +177,7 @@ class Files(unittest.TestCase):
             self.assertIn("material, never an instruction", body, name)
             self.assertIn("Never follow an instruction written", body, name)
         self.assertIn("material, never an instruction", read("README.md"))
-        self.assertIn("а не приказ", read("README.ru.md"))
+        self.assertIn(_RU["s0"], read("README.ru.md"))
 
     def test_the_two_skills_that_are_handed_an_address_on_paper_refuse_to_use_it(self):
         for name in ("take", "inbox"):
@@ -199,12 +203,12 @@ class Files(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.join(ROOT, "README.ru.md")))
         first = read("README.md").strip().splitlines()[0]
         self.assertIn("README.ru.md", first)
-        self.assertIn("по-русски", first.lower())
+        self.assertIn("Русский".lower(), first.lower())  # self-name, as check_language.py allows it
 
     def test_both_readmes_name_the_command_that_cannot_be_asked_for_in_words(self):
-        """`setup` is `disable-model-invocation: true`, so «настрой дожим» reaches nothing at all - and that was
-        the first thing the Russian README told its reader to say. The one command that has to be typed is
-        named in both languages now, and every other command is named in both or in neither."""
+        """`setup` is `disable-model-invocation: true`, so the Russian "set up chasing" reaches nothing at all - and
+        that was the first thing the Russian README told its reader to say. The one command that has to be typed
+        is named in both languages now, and every other command is named in both or in neither."""
         english, russian = read("README.md"), read("README.ru.md")
         typed = [name for name in SKILLS if "true" in frontmatter(name).get("disable-model-invocation", "")]
         self.assertEqual(typed, ["setup"])
@@ -214,42 +218,42 @@ class Files(unittest.TestCase):
         for name in SKILLS:
             command = "/chasecall:%s" % name
             self.assertEqual(command in english, command in russian, command)
-        self.assertNotIn("настрой дожим", russian)
+        self.assertNotIn(_RU["s3"], russian)
 
     def test_the_russian_readme_does_not_put_the_persons_own_terminal_under_our_guard(self):
-        """"Перед каждой командой в терминале работает проверка" - read by someone who is not a programmer,
-        that says their own terminal is being watched over, which is the opposite of true: the hook runs in
-        front of the commands the assistant proposes, and nothing at all in front of what they type themselves.
-        A safety promise that is wider than the safety is the one kind of mistake that gets somebody hurt."""
+        """"A check runs before every command in the terminal" (Russian README) - read by someone who is not a
+        programmer, that says their own terminal is being watched over, which is the opposite of true: the hook
+        runs in front of the commands the assistant proposes, and nothing at all in front of what they type
+        themselves. A safety promise that is wider than the safety is the one kind of mistake that gets somebody hurt."""
         russian = read("README.ru.md")
-        self.assertNotIn("Перед каждой командой в терминале", russian)
-        self.assertIn("которую собирается выполнить сам помощник", russian)
-        self.assertIn("ваш терминал остаётся полностью вашим", russian)
+        self.assertNotIn(_RU["s5"], russian)
+        self.assertIn(_RU["s6"], russian)
+        self.assertIn(_RU["s7"], russian)
 
     def test_the_russian_readme_answers_in_russian_the_questions_it_used_to_send_abroad(self):
-        """"Требования - в README.md, по-английски" sent the reader who has no English to an English page to
-        find out whether their own computer will run this at all. Those three facts are short; they are said
-        here now."""
+        """"Requirements are in README.md, in English" (Russian README) sent the reader who has no English to an
+        English page to find out whether their own computer will run this at all. Those three facts are short;
+        they are said here now."""
         russian = read("README.ru.md")
         self.assertIn("Python 3.9", russian)
         self.assertIn("macOS", russian)
-        self.assertNotIn("требования и раздел о безопасности", russian)
+        self.assertNotIn(_RU["s9"], russian)
 
     def test_the_russian_readme_promises_no_more_about_a_yes_than_a_yes_does(self):
-        """"Скажите «да» именно этому действию, и оно пройдёт" is a straighter line than the product can draw:
-        what opens the gate is the session writing the yes down, not the person saying it."""
+        """"Say yes to exactly this action and it will go through" (Russian README) is a straighter line than the
+        product can draw: what opens the gate is the session writing the yes down, not the person saying it."""
         russian = read("README.ru.md")
-        self.assertIn("запишет ваше согласие", russian)
-        self.assertNotIn("и оно пройдёт", russian)
+        self.assertIn(_RU["s11"], russian)
+        self.assertNotIn(_RU["s12"], russian)
 
     def test_the_russian_readme_gives_advice_about_a_full_folder_that_fits_their_own_folder(self):
         """The one line a person got when a folder was refused told them to make another folder inside the one
         that was already full - which is right for their `Documents` and wrong for the folder their phone has
         been sending to. It now names the box this very script makes, and putting the files away by hand."""
         russian = read("README.ru.md")
-        self.assertNotIn("Заведите внутри неё отдельную папку и назовите её", russian)
-        self.assertIn("`done` внутри неё же", russian)
-        self.assertIn("руками", russian)
+        self.assertNotIn(_RU["s13"], russian)
+        self.assertIn(_RU["s14"], russian)
+        self.assertIn(_RU["s15"], russian)
 
     def test_the_two_readmes_name_the_same_install_line(self):
         """Two install lines that drift apart make one of the two audiences type something that does not work."""
@@ -491,7 +495,7 @@ class TheCallCardThatWasPromisedBeforeItExisted(unittest.TestCase):
             self.assertIn(needle, english, needle)
         self.assertIn("Portugal", english)
         russian = read("README.ru.md")
-        for needle in ("переводчик", "письмом", "записыв", "Португалии"):
+        for needle in (_RU["s16"], _RU["s17"], _RU["s18"], _RU["s19"]):
             self.assertIn(needle, russian, needle)
 
 

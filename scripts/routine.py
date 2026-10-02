@@ -38,7 +38,7 @@ import tracker  # noqa: E402
 TRACKER = os.path.join(HERE, "tracker.py")
 TASK_NAME = "chasecall"
 DEFAULT_INTERVAL_HOURS = 6
-LANGS = ("en", "ru")
+LANGS = tracker.LANGS
 
 # A background run looks and prepares; it never acts. This is the same job the `watch` skill describes, word for
 # word, and the two must not drift: if the routine were told to `log ... sent` and `wait`, the attempt counter
@@ -60,53 +60,13 @@ WATCH_PROMPT = (
 )
 ALLOWED_TOOLS = "Bash(python3 {tracker}*)"
 
-HOW_TO = {
-    "en": ("Background is already in Claude Code, and it is the one that works:\n"
-           "  1. Open the Claude app -> the Code tab.\n"
-           "  2. Routines -> New routine -> Local.\n"
-           "  3. Pick how often: Hourly / Daily / Weekdays / Weekly.\n"
-           "  4. Paste the prompt from `routine.py prompt` and save.\n"
-           "It runs while the app is open and the computer is awake; one missed run is caught up afterwards.\n"
-           "You can also just say in the chat: \"check my tasks every morning at nine\"."),
-    "ru": ("Фон уже есть в самом Claude Code - и работает именно он:\n"
-           "  1. Откройте приложение Claude -> вкладка Code.\n"
-           "  2. Routines -> New routine -> Local.\n"
-           "  3. Выберите, как часто: Hourly / Daily / Weekdays / Weekly.\n"
-           "  4. Вставьте промпт из `routine.py prompt` и сохраните.\n"
-           "Работает, пока приложение открыто и компьютер не спит; один пропущенный запуск догоняется потом.\n"
-           "Можно и просто сказать в чате: «проверяй мои дела каждое утро в девять»."),
-}
-NO_CLAUDE = {
-    "en": ("I do not see `claude` in PATH, so I will not set up a background run - your tasks will come back to "
-           "life in your next session, and nothing is lost."),
-    "ru": ("Не вижу `claude` в PATH - фон не поставлю: дела оживут в следующей сессии, ничего не потеряется."),
-}
-MAC_NO_INSTALL = {
-    "en": ("On macOS I install nothing by myself: a background job put in with launchd is cut off by the system's "
-           "privacy protection the moment it touches your files, and you would think you were being helped when "
-           "you were not. Use the Routine above - it really runs."),
-    "ru": ("На macOS я сам ничего не ставлю: фоновую задачу через launchd система блокирует, как только она "
-           "трогает ваши файлы, и вы будете думать, что дела ведутся, а они стоят. Включите Routine выше - "
-           "он работает по-настоящему."),
-}
-
-
-# The four lines of the status screen. They were English whatever `--lang` said, so a Russian reader got the
-# Russian four steps underneath an English table of contents - and the labels are the half of it that says
-# whether anything is wrong.
-LABELS = {
-    "en": {"head": "chasecall background - %s", "claude": "claude in PATH: ", "db": "database:       ",
-           "alive": "tasks alive:    ", "sweep": "last sweep:     ", "no": "no", "never": "never",
-           "not_yet": " (not created yet)", "ago": "%s ago", "windows": "Windows task: "},
-    "ru": {"head": "chasecall, фоновая работа - %s", "claude": "claude в PATH:   ", "db": "файл с делами:   ",
-           "alive": "дел в работе:    ", "sweep": "последний обход: ", "no": "нет", "never": "ни разу",
-           "not_yet": " (ещё не создан)", "ago": "%s назад", "windows": "Задача для Windows: "},
-}
-
-NOT_WINDOWS = {
-    "en": "this is for Windows; on %s the Routine in the Code tab is the one that works",
-    "ru": "это для Windows; на %s работает Routine во вкладке Code",
-}
+# Every phrase below (including the four labels of the status screen) comes from lang/<code>.json now -
+# "routine" key - one table per language, on equal footing, built once at import time.
+HOW_TO = {code: tracker.load_lang(code)["routine"]["how_to"] for code in LANGS}
+NO_CLAUDE = {code: tracker.load_lang(code)["routine"]["no_claude"] for code in LANGS}
+MAC_NO_INSTALL = {code: tracker.load_lang(code)["routine"]["mac_no_install"] for code in LANGS}
+LABELS = {code: tracker.load_lang(code)["routine"]["labels"] for code in LANGS}
+NOT_WINDOWS = {code: tracker.load_lang(code)["routine"]["not_windows"] for code in LANGS}
 
 
 def in_words(mapping, lang):

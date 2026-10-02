@@ -22,6 +22,10 @@ if SCRIPTS not in sys.path:
 import inbox  # noqa: E402
 import tracker  # noqa: E402
 
+import json as _json
+from pathlib import Path as _Path
+_RU = _json.loads((_Path(__file__).resolve().parent / "fixtures" / "ru" / "test_inbox.json").read_text(encoding="utf-8"))
+
 NOW = "2026-09-24T14:00:00+00:00"
 # A name a phone can really produce, and a shell would really obey. It is the whole reason the move happens in
 # Python: `mv "<folder>/note" ; echo PWNED ; "x.txt"` runs the middle of the file name.
@@ -127,7 +131,7 @@ class WhatIsNew(Base):
         self.drop(".DS_Store")
         self.drop("Icon\r")
         self.drop("photo.jpg.crdownload")
-        self.drop("сводка.txt", "our own brief, written by brief.py --to")
+        self.drop(_RU["s0"], "our own brief, written by brief.py --to")
         self.drop("brief.txt", "the same, in English")
         os.makedirs(os.path.join(self.folder, "done"))
         self.drop("old.txt", "already sorted last week", folder=os.path.join(self.folder, "done"))
@@ -296,8 +300,8 @@ class MovingASortedFileIntoDone(Base):
         self.assertEqual(self.done_dir(), ["fine.pdf"])
 
     def test_the_russian_subfolder_works_and_nothing_else_does(self):
-        self.assertTrue(inbox.file_done(self.conn, "fine.pdf", into="разобрано")["ok"])
-        self.assertEqual(self.done_dir("разобрано"), ["fine.pdf"])
+        self.assertTrue(inbox.file_done(self.conn, "fine.pdf", into=_RU["s1"])["ok"])
+        self.assertEqual(self.done_dir(_RU["s2"]), ["fine.pdf"])
         self.drop("roof.txt", "call the roofer")
         with self.assertRaises(tracker.TrackerError):
             inbox.file_done(self.conn, "roof.txt", into="../..")
@@ -394,7 +398,7 @@ class TheFolderIsArguedWith(Base):
         self.assertIsNone(inbox.folder(self.conn)["folder"])               # and nothing was remembered
 
     def test_the_refusal_says_what_to_do_instead_and_names_no_commands(self):
-        for lang, expected in (("en", "Google Drive or Dropbox"), ("ru", "Google Диске или Dropbox")):
+        for lang, expected in (("en", "Google Drive or Dropbox"), ("ru", _RU["s3"])):
             try:
                 inbox.set_folder(self.conn, "~", lang)
                 self.fail("the home folder was accepted")
@@ -427,14 +431,14 @@ class TheFolderIsArguedWith(Base):
         for number in range(inbox.CROWDED_FOLDER + 1):
             open(os.path.join(crowded, "IMG_%04d.HEIC" % number), "w").close()
         for lang, box, by_hand in (("en", "done folder inside it", "by hand"),
-                                   ("ru", "разобрано внутри неё", "руками")):
+                                   ("ru", _RU["s4"], _RU["s5"])):
             with self.assertRaises(tracker.TrackerError) as caught:
                 inbox.set_folder(self.conn, crowded, lang)
             said = str(caught.exception)
             self.assertIn(box, said, lang)
             self.assertIn(by_hand, said, lang)
             self.assertNotIn("inbox.py", said)
-        self.assertNotIn("Заведите внутри неё отдельную папку", inbox.WORDS["ru"]["crowded"])
+        self.assertNotIn(_RU["s6"], inbox.WORDS["ru"]["crowded"])
 
     def test_a_file_is_not_a_folder(self):
         paper = self.drop("fine.pdf", "a parking fine")
@@ -537,9 +541,9 @@ class BothLanguages(Base):
         russian = inbox.render_list(result, "ru")
         self.assertIn("photo - IMG_4821.HEIC", english)
         self.assertIn("voice recording - Recording 7.m4a", english)
-        self.assertIn("фотография - IMG_4821.HEIC", russian)
-        self.assertIn("голосовая запись - Recording 7.m4a", russian)
-        self.assertNotIn("фотография", english)
+        self.assertIn(_RU["s7"], russian)
+        self.assertIn(_RU["s8"], russian)
+        self.assertNotIn(_RU["s9"], english)
         self.assertNotIn("photo -", russian)
 
     def test_no_command_is_ever_shown_to_the_person(self):
@@ -572,7 +576,7 @@ class BothLanguages(Base):
 
     def test_the_language_reaches_the_command_line(self):
         self.cli("folder", "--set", self.folder)
-        self.assertIn("фотография", self.cli("list", "--lang", "ru")[2])
+        self.assertIn(_RU["s10"], self.cli("list", "--lang", "ru")[2])
         self.assertEqual(self.cli("--lang", "klingon", "list")[0], 2)
 
     def test_a_refusal_speaks_the_same_language(self):
@@ -580,7 +584,7 @@ class BothLanguages(Base):
         code, _, _, err = self.cli("mark", "ghost.jpg", "--lang", "ru")
         self.assertEqual(code, 1)
         self.assertIn("ghost.jpg", err)
-        self.assertIn("нет", err)
+        self.assertIn(_RU["s11"], err)
 
 
 class NothingFallsOver(Base):
@@ -633,7 +637,7 @@ class NothingFallsOver(Base):
         patience = tracker.BUSY_WAIT_SECONDS
         tracker.BUSY_WAIT_SECONDS = 0.2
         try:
-            for lang, expected in (("en", "busy"), ("ru", "занят")):
+            for lang, expected in (("en", "busy"), ("ru", _RU["s12"])):
                 with self.assertRaises(tracker.TrackerError) as caught:
                     inbox.connect(shared, lang)
                 self.assertIn(expected, str(caught.exception))
@@ -652,7 +656,7 @@ class NothingFallsOver(Base):
         plain.executescript("CREATE TABLE x (id INTEGER); CREATE VIEW inbox_settings AS SELECT * FROM x;")
         plain.commit()
         plain.close()
-        for lang, expected in (("en", "not a Chasecall task file"), ("ru", "не файл дел")):
+        for lang, expected in (("en", "not a Chasecall task file"), ("ru", _RU["s13"])):
             with self.assertRaises(tracker.TrackerError) as caught:
                 inbox.connect(shadowed, lang)
             self.assertIn(expected, str(caught.exception))

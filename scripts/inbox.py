@@ -44,9 +44,12 @@ InboxError = tracker.TrackerError
 
 FOLDER_KEY = "inbox_folder"
 
-# Where a sorted file goes, inside the folder the person named. These two names, and no others: `--into` is
-# checked against this tuple, so nothing can be built out of a name that came from a phone.
-DONE_DIRS = ("done", "разобрано")
+LANGS = tracker.LANGS
+
+# Where a sorted file goes, inside the folder the person named - one name per language, from lang/<code>.json
+# ("inbox.done_dir"), `--into` is checked against this tuple, so nothing can be built out of a name that came
+# from a phone. "done" (English) stays first and is the default regardless of `--lang`.
+DONE_DIRS = tuple(tracker.load_lang(code)["inbox"]["done_dir"] for code in LANGS)
 
 # A folder with more than this many things in it is not a place somebody drops a photo from the street; it is
 # their Documents, their Desktop or the whole of their Dropbox. We refuse it instead of offering to sort it.
@@ -64,95 +67,14 @@ KINDS = (
 JUNK_NAMES = {".ds_store", "desktop.ini", "thumbs.db", "icon\r", ".localized"}
 JUNK_SUFFIXES = (".tmp", ".part", ".partial", ".crdownload", ".download", ".icloud", "~")
 # Our own brief, left in the same folder for the phone to read (`brief.py --to`). It did not come from the phone,
-# so it is never offered back to the person as something to sort.
-OURS = {"brief.txt", "сводка.txt"}
+# so it is never offered back to the person as something to sort - one file name per language, read straight
+# out of brief's own table in lang/<code>.json rather than importing brief.py (which imports this module).
+OURS = {tracker.load_lang(code)["brief"]["file"] for code in LANGS}
 
-LANGS = ("en", "ru")
-
-# Everything the person is shown, in their own language. No command names live in here: a command on the screen
-# of someone who has never opened a terminal is noise at best and an instruction they cannot follow at worst.
-WORDS = {
-    "en": {
-        "kinds": {"photo": "photo", "note": "note", "voice": "voice recording", "video": "video",
-                  "document": "document", "other": "file"},
-        "sizes": ("B", "KB", "MB", "GB"),
-        "no_folder_yet": "No folder from the phone has been named yet.",
-        "folder_is": "The folder from the phone: %s",
-        "folder_not_here": " - it is not on this computer right now",
-        "folder_gone": "The folder %s is not on this computer right now, so there is nothing to look at.",
-        "head_new": "%d new from the phone:",
-        "head_pending": "%d not sorted yet:",
-        "head_all": "%d in the folder:",
-        "in_folder": "(in %s)",
-        "nothing_new": "Nothing new from the phone. (in %s)",
-        "arriving": "not all of it is here yet - it will be whole next time",
-        "is_sorted": "sorted",
-        "shown_before": "%d more were shown earlier and are still not sorted.",
-        "pending_of_all": "%d of them are not sorted yet.",
-        "marked": "Written down as sorted: %s. The file itself was not touched.",
-        "moved": "%s now lies in the %s folder inside the same folder. Nothing was deleted.",
-        "moved_renamed": ("%s now lies in the %s folder inside the same folder, under the name %s: a file of the "
-                          "first name was already there, and both are still here."),
-        "already_done": "%s was already in the %s folder; only the note was written down.",
-        # refusals
-        "need_folder": "Say which folder both the phone and this computer can see.",
-        "no_folder_set": "No folder from the phone has been named yet.",
-        "too_high": ("I will not take %s: that is the home folder or a folder at the very top, with everything "
-                     "you own inside it. Name the one folder in Google Drive or Dropbox that you share things "
-                     "into from the phone - a folder of its own, inside them."),
-        "crowded": ("%s already holds %d things, and nothing new from the street would be visible among them. "
-                    "If this is not the folder you share into from the phone, name that one instead. If it is "
-                    "the right one, the things you have already dealt with can move into the done folder inside "
-                    "it - I do that after your yes - or you can put them away into folders of your own by hand; "
-                    "then name it again."),
-        "not_a_folder": "%s is a file, not a folder.",
-        "need_name": "Say which file.",
-        "no_such_file": "There is no file called %s in the folder from the phone.",
-        "outside": ("%s is not in the folder from the phone. That one folder is the only place I touch, so I am "
-                    "not moving it."),
-        "bad_into": "A sorted file goes into %s and nowhere else.",
-        "move_failed": "%s could not be moved: %s. Nothing was lost; it is where it was.",
-    },
-    "ru": {
-        "kinds": {"photo": "фотография", "note": "записка", "voice": "голосовая запись", "video": "видео",
-                  "document": "документ", "other": "файл"},
-        "sizes": ("Б", "КБ", "МБ", "ГБ"),
-        "no_folder_yet": "Папка с телефона пока не названа.",
-        "folder_is": "Папка с телефона: %s",
-        "folder_not_here": " - сейчас её на этом компьютере нет",
-        "folder_gone": "Папки %s сейчас на этом компьютере нет, смотреть нечего.",
-        "head_new": "Новое с телефона, %d:",
-        "head_pending": "Ещё не разобрано, %d:",
-        "head_all": "Всего в папке %d:",
-        "in_folder": "(в папке %s)",
-        "nothing_new": "С телефона ничего нового. (в папке %s)",
-        "arriving": "пришло ещё не целиком - в следующий раз будет весь",
-        "is_sorted": "разобрано",
-        "shown_before": "Ещё %d показывал раньше, они так и не разобраны.",
-        "pending_of_all": "Из них не разобрано: %d.",
-        "marked": "Записал как разобранное: %s. Сам файл не тронут.",
-        "moved": "%s теперь лежит в папке %s внутри той же папки. Ничего не удалено.",
-        "moved_renamed": ("%s теперь лежит в папке %s внутри той же папки под именем %s: файл с первым именем "
-                          "там уже был, и оба на месте."),
-        "already_done": "%s уже лежал в папке %s; записал только пометку.",
-        # refusals
-        "need_folder": "Скажите, какую папку видят и телефон, и этот компьютер.",
-        "no_folder_set": "Папка с телефона пока не названа.",
-        "too_high": ("%s я не возьму: это домашняя папка или папка на самом верху, в ней лежит всё ваше. "
-                     "Назовите одну папку в Google Диске или Dropbox, в которую вы кладёте с телефона, - "
-                     "отдельную папку внутри них."),
-        "crowded": ("В папке %s уже %d файлов и папок - среди них не разглядеть то, что только что пришло с "
-                    "улицы. Если это не та папка, в которую вы кладёте с телефона, назовите ту. А если та "
-                    "самая - разобранное можно убирать в папку разобрано внутри неё, я переношу туда после "
-                    "вашего «да», или разложите файлы по своим папкам руками и назовите её снова."),
-        "not_a_folder": "%s - это файл, а не папка.",
-        "need_name": "Скажите, какой файл.",
-        "no_such_file": "Файла с именем %s в папке с телефона нет.",
-        "outside": ("%s лежит не в папке с телефона. Я трогаю только эту одну папку, поэтому переносить не буду."),
-        "bad_into": "Разобранное уходит в %s и больше никуда.",
-        "move_failed": "%s перенести не удалось: %s. Ничего не потеряно, файл там же, где был.",
-    },
-}
+# Everything the person is shown, in their own language, from lang/<code>.json ("inbox"). No command names
+# live in here: a command on the screen of someone who has never opened a terminal is noise at best and an
+# instruction they cannot follow at worst.
+WORDS = {code: tracker.load_lang(code)["inbox"] for code in LANGS}
 
 
 def words(lang="en"):

@@ -1,4 +1,4 @@
-[По-русски — README.ru.md](README.ru.md)
+Languages: English · [Русский](README.ru.md)
 
 # Chasecall
 

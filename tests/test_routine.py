@@ -18,6 +18,10 @@ if SCRIPTS not in sys.path:
 import routine  # noqa: E402
 import tracker  # noqa: E402
 
+import json as _json
+from pathlib import Path as _Path
+_RU = _json.loads((_Path(__file__).resolve().parent / "fixtures" / "ru" / "test_routine.json").read_text(encoding="utf-8"))
+
 FAKE_CLAUDE = "/usr/local/bin/claude"
 
 
@@ -112,9 +116,9 @@ class Status(Base):
         """The four steps were translated and the five lines above them were not, so a Russian reader got
         `claude in PATH:` and `last sweep: never` over the top of their own instructions."""
         russian = routine.render_status(routine.status(lang="ru", binary=None), "ru")
-        self.assertIn("файл с делами:", russian)
-        self.assertIn("дел в работе:", russian)
-        self.assertIn("ни разу", russian)
+        self.assertIn(_RU["s0"], russian)
+        self.assertIn(_RU["s1"], russian)
+        self.assertIn(_RU["s2"], russian)
         for english in ("claude in PATH", "database:", "tasks alive", "last sweep", "never"):
             self.assertNotIn(english, russian, english)
         self.assertIn("claude in PATH", routine.render_status(routine.status(binary=None), "en"))
@@ -123,9 +127,9 @@ class Status(Base):
         english = routine.status(lang="en", platform="darwin", binary=FAKE_CLAUDE)
         russian = routine.status(lang="ru", platform="darwin", binary=FAKE_CLAUDE)
         self.assertIn("Open the Claude app", english["how_to"])
-        self.assertIn("Откройте приложение Claude", russian["how_to"])
+        self.assertIn(_RU["s3"], russian["how_to"])
         self.assertIn("Routines -> New routine -> Local", russian["how_to"])   # the buttons keep their names
-        self.assertIn("фон не поставлю", routine.status(lang="ru", binary=None)["warning"])
+        self.assertIn(_RU["s4"], routine.status(lang="ru", binary=None)["warning"])
 
 
 class Prompt(Base):
@@ -199,7 +203,7 @@ class Windows(Base):
         self.assertEqual((code, err.strip()), (0, ""))
         self.assertNotIn("schtasks", out)
         self.assertNotIn("--allowedTools", out)
-        self.assertIn("это для Windows", out)
+        self.assertIn(_RU["s5"], out)
         self.assertIn("Routines -> New routine -> Local", out)
         code, data, out, _ = self.cli("windows", "--json", env_extra={"CHASECALL_CLAUDE_BIN": FAKE_CLAUDE})
         self.assertIn("schtasks", data["command"])     # still there for a machine that asks in JSON
@@ -266,7 +270,7 @@ class CommandLine(Base):
         with open(os.path.join(ROOT, "skills", "watch", "SKILL.md"), "r", encoding="utf-8") as handle:
             skill = handle.read()
         self.assertIn("routine.py status --lang", skill)
-        self.assertIn("Откройте приложение Claude", routine.status(lang="ru", binary=FAKE_CLAUDE)["how_to"])
+        self.assertIn(_RU["s6"], routine.status(lang="ru", binary=FAKE_CLAUDE)["how_to"])
 
 
 if __name__ == "__main__":

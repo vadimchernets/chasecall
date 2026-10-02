@@ -1,0 +1,155 @@
+{
+  "brief": {
+    "header": "chasecall - %s",
+    "done": "Feito nas ultimas 24 horas",
+    "waiting": "Esperando resposta",
+    "needs_you": "Precisa de voce",
+    "mine": "Hoje eu assumo",
+    "empty_all": "Ainda nao ha nada na lista. Diga: \"persiga <o que for>\" - e eu assumo e sigo até o fim.",
+    "empty_section": "  nada",
+    "next_step": "proximo passo",
+    "attempt": "tentativa",
+    "evidence": "prova",
+    "goal": "objetivo",
+    "night": "Janela noturna %02d:00-%02d:00: agora nao escrevo a ninguem, envio de manha.",
+    "nothing_for_you": "  nada - voce nao precisa fazer nada agora",
+    "out_of_attempts": "tentativas esgotadas, estou passando para voce",
+    "tail": "Em uma linha: %s",
+    "tail_nothing": "nada esta esperando por voce",
+    "tail_some": "%d tarefa(s) esperam seu passo",
+    "file": "resumo.txt",
+    "updated": "Atualizado %s (chasecall:brief). Este arquivo e reescrito a cada vez; mais nada na pasta e tocado.",
+    "ask": "Posso deixar este resumo nessa pasta como arquivo, para voce ler pelo telefone. Ele tem os nomes das suas tarefas, com quem voce esta tratando, os telefones e as notas. Essa pasta vai para a sua nuvem - Google Drive ou Dropbox -, entao o arquivo tambem vai para la. Posso?",
+    "not_agreed": "nada foi escrito: ninguem disse sim a deixar o resumo em %s, e de la ele viaja para a nuvem",
+    "ask_how": "faca a pergunta acima a pessoa, com as palavras dela, e repita o mesmo comando com --agreed se ela disser sim, ou com --declined se disser nao",
+    "declined": "o resumo nao fica em %s: a pessoa disse nao. Nada foi escrito.",
+    "occupied": "ja existe um arquivo chamado %s em %s e ele nao e nosso. Foi deixado exatamente como esta e nada foi escrito - pergunte a pessoa o que e esse arquivo, ou use outra pasta.",
+    "occupied_again": "o arquivo chamado %s em %s nao e o que nos escrevemos: nosso resumo ja nao esta mais la e sob esse nome agora ha um arquivo de outra pessoa. Foi deixado exatamente como esta e nada foi escrito - pergunte a pessoa o que e esse arquivo, ou use outra pasta.",
+    "no_folder": "diga em qual pasta o resumo deve ficar",
+    "not_here": "a pasta %s nao esta neste computador agora; o resumo nao foi escrito",
+    "bad_folder": "%s",
+    "failed": "nao foi possivel escrever %s: %s"
+  },
+  "inbox": {
+    "kinds": {
+      "photo": "foto",
+      "note": "nota",
+      "voice": "gravacao de voz",
+      "video": "video",
+      "document": "documento",
+      "other": "arquivo"
+    },
+    "sizes": [
+      "B",
+      "KB",
+      "MB",
+      "GB"
+    ],
+    "done_dir": "concluido",
+    "no_folder_yet": "Ainda nenhuma pasta do telefone foi indicada.",
+    "folder_is": "A pasta do telefone: %s",
+    "folder_not_here": " - ela nao esta neste computador agora",
+    "folder_gone": "A pasta %s nao esta neste computador agora, nao ha nada para ver.",
+    "head_new": "%d novo(s) do telefone:",
+    "head_pending": "%d ainda nao organizado(s):",
+    "head_all": "%d na pasta:",
+    "in_folder": "(em %s)",
+    "nothing_new": "Nada novo do telefone. (em %s)",
+    "arriving": "ainda nao chegou por completo - na proxima vez estara inteiro",
+    "is_sorted": "organizado",
+    "shown_before": "Mais %d foram mostrados antes e ainda nao foram organizados.",
+    "pending_of_all": "Destes, %d ainda nao foram organizados.",
+    "marked": "Anotado como organizado: %s. O arquivo em si nao foi tocado.",
+    "moved": "%s agora esta na pasta %s dentro da mesma pasta. Nada foi apagado.",
+    "moved_renamed": "%s agora esta na pasta %s dentro da mesma pasta, com o nome %s: ja havia um arquivo com o primeiro nome, e os dois foram mantidos.",
+    "already_done": "%s ja estava na pasta %s; apenas a nota foi anotada.",
+    "need_folder": "Diga qual pasta tanto o telefone quanto este computador conseguem ver.",
+    "no_folder_set": "Ainda nenhuma pasta do telefone foi indicada.",
+    "too_high": "Nao vou usar %s: essa e a pasta pessoal ou uma pasta no topo, com tudo que e seu dentro. Indique a pasta propria dentro do Google Drive ou Dropbox que voce usa para enviar coisas do telefone.",
+    "crowded": "%s ja tem %d itens, e entre eles nao se veria o que acabou de chegar da rua. Se esta nao e a pasta que voce usa pelo telefone, indique a outra. Se for a certa, o que ja foi organizado pode ir para a pasta de organizados dentro dela - eu faco isso apos o seu sim -, ou organize os arquivos voce mesmo; depois indique-a de novo.",
+    "not_a_folder": "%s e um arquivo, nao uma pasta.",
+    "need_name": "Diga qual arquivo.",
+    "no_such_file": "Nao ha nenhum arquivo chamado %s na pasta do telefone.",
+    "outside": "%s nao esta na pasta do telefone. Eu so toco nessa pasta, por isso nao vou move-lo.",
+    "bad_into": "Um arquivo organizado vai para %s e para nenhum outro lugar.",
+    "move_failed": "%s nao pode ser movido: %s. Nada foi perdido; esta onde estava."
+  },
+  "routine": {
+    "how_to": "O plano de fundo ja existe no proprio Claude Code, e e o que funciona:\n  1. Abra o aplicativo Claude -> a aba Code.\n  2. Routines -> New routine -> Local.\n  3. Escolha a frequencia: Hourly / Daily / Weekdays / Weekly.\n  4. Cole o prompt de `routine.py prompt` e salve.\nFunciona enquanto o aplicativo esta aberto e o computador esta ativo; uma execucao perdida e recuperada depois.\nTambem pode simplesmente dizer no chat: \"verifique minhas tarefas toda manha as nove\".",
+    "no_claude": "Nao vejo `claude` no PATH, entao nao vou configurar uma execucao em segundo plano - suas tarefas voltarao a vida na sua proxima sessao, e nada se perde.",
+    "mac_no_install": "No macOS eu nao instalo nada por conta propria: uma tarefa em segundo plano feita com launchd e cortada pela protecao de privacidade do sistema assim que toca seus arquivos, e voce pensaria que esta sendo ajudado quando nao esta. Use a Routine acima - ela funciona de verdade.",
+    "labels": {
+      "head": "chasecall, trabalho em segundo plano - %s",
+      "claude": "claude no PATH:  ",
+      "db": "banco de dados:  ",
+      "alive": "tarefas ativas:  ",
+      "sweep": "ultima revisao:  ",
+      "no": "nao",
+      "never": "nunca",
+      "not_yet": " (ainda nao criado)",
+      "ago": "ha %s",
+      "windows": "Tarefa do Windows: "
+    },
+    "not_windows": "isto e para Windows; em %s quem funciona e a Routine na aba Code"
+  },
+  "tracker": {
+    "busy": "o arquivo de tarefas esta ocupado agora - outra coisa esta escrevendo nele. Nada foi alterado; tente novamente em um momento.",
+    "unwritable": "nao e possivel escrever no arquivo de tarefas %s - as permissoes nao permitem. Nada foi alterado, e isto nao vai se resolver por si so.",
+    "not_ours": "%s nao e um arquivo de tarefas do Chasecall - nada foi lido nem escrito nele. Mova-o para outro lugar, ou diga onde esta o verdadeiro."
+  },
+  "guard": {
+    "family_words": {
+      "mail": [
+        "^envia",
+        "^envie",
+        "^enviar",
+        "^envio",
+        "correio",
+        "e-mail"
+      ],
+      "money": [
+        "^pagar",
+        "^pague",
+        "^pago",
+        "^paga",
+        "cartão",
+        "fatura"
+      ],
+      "delete": [
+        "^apag",
+        "^exclua",
+        "^excluir",
+        "^exclui"
+      ],
+      "cancel": [
+        "cancel",
+        "anul"
+      ]
+    },
+    "edit_words": [
+      "edit",
+      "^altera",
+      "^altere",
+      "corrig",
+      "modific",
+      "atualiz",
+      "reescrev",
+      "^salve",
+      "^salvar"
+    ],
+    "yes_example": {
+      "delete": "apague %s",
+      "overwrite": "edite %s",
+      "mail": "envie a carta para %s",
+      "money": "pague %s",
+      "cancel": "cancele %s"
+    },
+    "yes_unnamed": {
+      "delete": "<este unico arquivo, pelo nome>",
+      "overwrite": "<este unico arquivo, pelo nome>",
+      "mail": "<este unico endereco>",
+      "money": "<este unico valor, para esta unica loja>",
+      "cancel": "<esta unica reserva>"
+    }
+  }
+}

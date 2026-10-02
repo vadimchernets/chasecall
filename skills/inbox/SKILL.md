@@ -149,8 +149,9 @@ It makes the subfolder if it is not there, moves the file into it, and writes do
 the one folder. If a file of that name is already in there (two phones both send `IMG_0001.HEIC`), it keeps both
 and gives the new one a free name; the script says so, and so should you, in one short line.
 
-Use `--into разобрано` instead of the default `done` when the person's own folders are in Russian. The script
-knows both names and will not offer their contents again either way.
+Use `--into <code>` with the Russian-language name from lang/ru.json's "inbox.done_dir" instead of the
+default `done` when the person's own folders are in Russian (every other language the plugin speaks has its
+own name there too). The script knows all of these names and will not offer their contents again either way.
 
 On a no, leave every file exactly where it is and write them down anyway - the note is ours, the folder is
 theirs: `inbox.py mark "<file>" --note "..."` touches no file at all.

@@ -19,6 +19,10 @@ if SCRIPTS not in sys.path:
     sys.path.insert(0, SCRIPTS)
 import tracker  # noqa: E402
 
+import json as _json
+from pathlib import Path as _Path
+_RU = _json.loads((_Path(__file__).resolve().parent / "fixtures" / "ru" / "test_tracker.json").read_text(encoding="utf-8"))
+
 NIGHT = datetime(2026, 9, 24, 23, 30, tzinfo=timezone.utc)   # only the hour matters to the night window
 EARLY = datetime(2026, 9, 24, 3, 5, tzinfo=timezone.utc)
 DAY = datetime(2026, 9, 24, 10, 0, tzinfo=timezone.utc)
@@ -372,8 +376,8 @@ class TheFileIsSharedWithTheBackground(Base):
         open(unwritable, "w").close()
         os.chmod(unwritable, 0o444)
         try:
-            for args, expected, absent in ((["--lang", "en"], "permissions", "права"),
-                                           (["--lang", "ru"], "права", "permissions")):
+            for args, expected, absent in ((["--lang", "en"], "permissions", _RU["s0"]),
+                                           (["--lang", "ru"], _RU["s1"], "permissions")):
                 for script in ("brief.py", "inbox.py"):
                     argv = [sys.executable, os.path.join(SCRIPTS, script)] + args
                     argv += ["list"] if script == "inbox.py" else []
@@ -392,7 +396,7 @@ class TheFileIsSharedWithTheBackground(Base):
         patience = tracker.BUSY_WAIT_SECONDS
         tracker.BUSY_WAIT_SECONDS = 0.2
         try:
-            for lang, expected, absent in (("en", "busy", "занят"), ("ru", "занят", "busy")):
+            for lang, expected, absent in (("en", "busy", _RU["s2"]), ("ru", _RU["s3"], "busy")):
                 with self.assertRaises(tracker.TrackerError) as caught:
                     tracker.connect(path, lang)
                 self.assertIn(expected, str(caught.exception))
@@ -431,8 +435,8 @@ class AFileThatIsNotOurs(Base):
 
     def test_it_is_one_sentence_in_both_languages_and_never_a_traceback(self):
         for path in (self.not_a_database(), self.tasks_is_not_a_table()):
-            for lang, expected, absent in (("en", "not a Chasecall task file", "не файл дел"),
-                                           ("ru", "не файл дел", "not a Chasecall")):
+            for lang, expected, absent in (("en", "not a Chasecall task file", _RU["s4"]),
+                                           ("ru", _RU["s5"], "not a Chasecall")):
                 with self.assertRaises(tracker.TrackerError) as caught:
                     tracker.connect(path, lang)
                 said = str(caught.exception)

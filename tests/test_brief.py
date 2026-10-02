@@ -25,6 +25,10 @@ import brief  # noqa: E402
 import inbox  # noqa: E402
 import tracker  # noqa: E402
 
+import json as _json
+from pathlib import Path as _Path
+_RU = _json.loads((_Path(__file__).resolve().parent / "fixtures" / "ru" / "test_brief.json").read_text(encoding="utf-8"))
+
 NOW = "2026-09-24T14:00:00+00:00"
 DAY = datetime(2026, 9, 24, 10, 0, tzinfo=timezone.utc)      # only the hour is read: daytime
 NIGHT = datetime(2026, 9, 24, 23, 30, tzinfo=timezone.utc)
@@ -75,7 +79,7 @@ class EmptyDatabase(Base):
         english = brief.render(data, "en")
         russian = brief.render(data, "ru")
         self.assertIn("chase <the thing>", english)
-        self.assertIn("добейся", russian)
+        self.assertIn(_RU["s0"], russian)
         self.assertNotIn("Waiting for an answer", english)
 
     def test_the_command_line_survives_an_empty_database(self):
@@ -126,7 +130,7 @@ class FourSections(Base):
         self.assertIn(self.mine["id"], ids)
         self.assertNotIn(self.mine["id"], [task["id"] for task in data["mine_today"]])
         self.assertIn("attempts used up", brief.render(data, "en"))
-        self.assertIn("попытки кончились", brief.render(data, "ru"))
+        self.assertIn(_RU["s1"], brief.render(data, "ru"))
 
     def test_both_languages_show_the_same_tasks_in_their_own_words(self):
         data = self.collect()
@@ -137,9 +141,9 @@ class FourSections(Base):
             self.assertIn("call the bank", text)
         self.assertIn("Done in the last 24 hours (1)", english)
         self.assertIn("Needs you (1)", english)
-        self.assertIn("Сделано за сутки (1)", russian)
-        self.assertIn("Нужно от вас (1)", russian)
-        self.assertNotIn("Сделано", english)
+        self.assertIn(_RU["s2"], russian)
+        self.assertIn(_RU["s3"], russian)
+        self.assertNotIn(_RU["s4"], english)
         self.assertNotIn("Done in the last", russian)
 
     def test_the_waiting_line_says_when_we_come_back_and_which_attempt_it_is(self):
@@ -151,12 +155,12 @@ class FourSections(Base):
         self.assertIn("1 task(s) wait for your move", brief.render(self.collect(), "en"))
         tracker.done(self.conn, self.yours["id"], "the bank unblocked it on the phone")
         self.assertIn("nothing is waiting on you", brief.render(self.collect(), "en"))
-        self.assertIn("от вас сейчас ничего не нужно", brief.render(self.collect(), "ru"))
+        self.assertIn(_RU["s5"], brief.render(self.collect(), "ru"))
 
     def test_at_night_the_brief_says_it_is_not_writing_to_anyone(self):
         self.assertTrue(self.collect(local=NIGHT)["night"])
         self.assertIn("I am not writing to anyone now", brief.render(self.collect(local=NIGHT), "en"))
-        self.assertIn("сейчас никому не пишу", brief.render(self.collect(local=NIGHT), "ru"))
+        self.assertIn(_RU["s6"], brief.render(self.collect(local=NIGHT), "ru"))
         self.assertNotIn("not writing to anyone", brief.render(self.collect(local=DAY), "en"))
 
     def test_json_carries_the_same_numbers_as_the_screen(self):
@@ -168,8 +172,8 @@ class FourSections(Base):
 
     def test_the_language_flag_is_the_only_way_to_switch_and_a_wrong_one_is_refused(self):
         self.assertIn("Needs you", self.cli("--lang", "en")[2])
-        self.assertIn("Нужно от вас", self.cli("--lang", "ru")[2])
-        self.assertIn("Нужно от вас", self.cli(env_extra={"CHASECALL_LANG": "ru"})[2])
+        self.assertIn(_RU["s7"], self.cli("--lang", "ru")[2])
+        self.assertIn(_RU["s8"], self.cli(env_extra={"CHASECALL_LANG": "ru"})[2])
         self.assertEqual(self.cli("--lang", "klingon")[0], 2)
 
 
@@ -203,14 +207,14 @@ class NothingLeavesTheComputerWithoutAYes(FolderBase):
     def test_the_first_time_nothing_is_written_and_the_question_is_handed_over(self):
         code, _, out, err = self.cli("--lang", "ru", "--to", self.folder)
         self.assertEqual(code, brief.NOT_WRITTEN)
-        self.assertIn("Нужно от вас", out)                    # the screen is unchanged either way
+        self.assertIn(_RU["s9"], out)                    # the screen is unchanged either way
         self.assertEqual(os.listdir(self.folder), [])
-        self.assertIn("ничего не записано", err)
+        self.assertIn(_RU["s10"], err)
         self.assertIn("Google", err)
         self.assertIn("--agreed", err)
 
     def test_the_question_is_in_the_language_the_person_reads(self):
-        self.assertIn("Класть?", self.cli("--lang", "ru", "--to", self.folder)[3])
+        self.assertIn(_RU["s11"], self.cli("--lang", "ru", "--to", self.folder)[3])
         self.assertIn("Shall I?", self.cli("--lang", "en", "--to", self.folder)[3])
 
     def test_a_yes_writes_it_and_is_remembered_so_nobody_is_asked_twice(self):
@@ -249,7 +253,7 @@ class NothingLeavesTheComputerWithoutAYes(FolderBase):
             self.cli("--lang", "ru", "--to", self.folder, "--agreed")
             here = os.path.join(self.root, "fresh.db")
             self.cli("--lang", "ru", env_extra={"CHASECALL_DB": here})
-            self.assertEqual(stat.S_IMODE(os.stat(os.path.join(self.folder, "сводка.txt")).st_mode), 0o600)
+            self.assertEqual(stat.S_IMODE(os.stat(os.path.join(self.folder, _RU["s12"])).st_mode), 0o600)
             self.assertEqual(stat.S_IMODE(os.stat(here).st_mode), 0o600)
         finally:
             os.umask(was)
@@ -258,7 +262,7 @@ class NothingLeavesTheComputerWithoutAYes(FolderBase):
         was = os.umask(0)
         try:
             self.cli("--lang", "ru", "--to", self.folder, "--agreed")
-            mode = stat.S_IMODE(os.stat(os.path.join(self.folder, "сводка.txt")).st_mode)
+            mode = stat.S_IMODE(os.stat(os.path.join(self.folder, _RU["s13"])).st_mode)
         finally:
             os.umask(was)
         self.assertEqual(mode, 0o600)
@@ -297,20 +301,21 @@ class NothingLeavesTheComputerWithoutAYes(FolderBase):
 
 
 class SomebodyElsesFileIsNeverDestroyed(FolderBase):
-    """A shared cloud folder is shared. `brief.txt` and `сводка.txt` are ordinary names, and `is_junk()` keeps
-    both of them out of the inbox listing - so a file quietly replaced here would never surface again either."""
+    """A shared cloud folder is shared. `brief.txt` and its Russian-language name (lang/ru.json) are ordinary
+    names, and `is_junk()` keeps both of them out of the inbox listing - so a file quietly replaced here would
+    never surface again either."""
 
     def test_a_file_of_that_name_which_is_not_ours_is_left_exactly_as_it_is(self):
         self.agree()
-        theirs = os.path.join(self.folder, "сводка.txt")
+        theirs = os.path.join(self.folder, _RU["s15"])
         with open(theirs, "w", encoding="utf-8") as handle:
-            handle.write("моя сводка по даче: столбы, крыша, счётчик")
+            handle.write(_RU["s16"])
         code, _, out, err = self.cli("--lang", "ru", "--to", self.folder)
         self.assertEqual(code, brief.NOT_WRITTEN)
-        self.assertIn("Нужно от вас", out)                    # the screen still works
-        self.assertEqual(self.read_file("сводка.txt"), "моя сводка по даче: столбы, крыша, счётчик")
-        self.assertIn("не наш", err)
-        self.assertIn("сводка.txt", err)
+        self.assertIn(_RU["s17"], out)                    # the screen still works
+        self.assertEqual(self.read_file(_RU["s18"]), _RU["s19"])
+        self.assertIn(_RU["s20"], err)
+        self.assertIn(_RU["s21"], err)
 
     def test_our_own_file_is_recognised_and_replaced(self):
         self.cli("--lang", "en", "--to", self.folder, "--agreed")
@@ -340,10 +345,10 @@ class SomebodyElsesFileIsNeverDestroyed(FolderBase):
         settings, both files are still recognised as ours, because the answer is inside them."""
         self.cli("--lang", "ru", "--to", self.folder, "--agreed")
         self.cli("--lang", "en", "--to", self.folder, "--agreed")
-        self.assertIn(brief.MARK, self.read_file("сводка.txt"))
+        self.assertIn(brief.MARK, self.read_file(_RU["s22"]))
         self.assertIn(brief.MARK, self.read_file("brief.txt"))
         self.forget_that_we_wrote_them()
-        for name in ("сводка.txt", "brief.txt"):
+        for name in (_RU["s23"], "brief.txt"):
             self.assertTrue(brief.is_ours(os.path.join(self.folder, name)), name)
 
     def test_the_note_the_person_left_where_our_brief_used_to_be_is_never_destroyed(self):
@@ -352,21 +357,21 @@ class SomebodyElsesFileIsNeverDestroyed(FolderBase):
         shared. A memory that says "ours" about a file nobody has read is not knowledge, it is a licence to
         destroy: the content decides, or nothing does."""
         self.cli("--lang", "ru", "--to", self.folder, "--agreed")
-        os.remove(os.path.join(self.folder, "сводка.txt"))
-        theirs = "ВАЖНО: telefon vracha 555-0100, zvonit do 18:00\n"
-        with open(os.path.join(self.folder, "сводка.txt"), "w", encoding="utf-8") as handle:
+        os.remove(os.path.join(self.folder, _RU["s24"]))
+        theirs = _RU["s25"]
+        with open(os.path.join(self.folder, _RU["s26"]), "w", encoding="utf-8") as handle:
             handle.write(theirs)
 
         code, _, out, err = self.cli("--lang", "ru", "--to", self.folder)
         self.assertEqual(code, brief.NOT_WRITTEN)
-        self.assertIn("Нужно от вас", out)                    # the screen still works
-        self.assertEqual(self.read_file("сводка.txt"), theirs)
-        self.assertIn("555-0100", self.read_file("сводка.txt"))
-        self.assertIn("чужой файл", err)                      # and it says what happened, not only "not ours"
-        self.assertIn("сводка.txt", err)
+        self.assertIn(_RU["s27"], out)                    # the screen still works
+        self.assertEqual(self.read_file(_RU["s28"]), theirs)
+        self.assertIn("555-0100", self.read_file(_RU["s29"]))
+        self.assertIn(_RU["s30"], err)                      # and it says what happened, not only "not ours"
+        self.assertIn(_RU["s31"], err)
 
     def test_and_the_settings_alone_never_answer_the_question(self):
-        target = os.path.join(self.folder, "сводка.txt")
+        target = os.path.join(self.folder, _RU["s32"])
         with open(target, "w", encoding="utf-8") as handle:
             handle.write("somebody else's note, no mark in it anywhere")
         conn = inbox.connect()
@@ -418,18 +423,18 @@ class IntoTheFolderThePhoneCanSee(FolderBase):
         self.assertEqual(self.cli("--lang", "en", "--to", self.folder)[0], 0)
         self.assertEqual(os.listdir(self.folder), ["brief.txt"])
         self.assertEqual(self.cli("--lang", "ru", "--to", self.folder)[0], 0)
-        self.assertEqual(sorted(os.listdir(self.folder)), ["brief.txt", "сводка.txt"])
+        self.assertEqual(sorted(os.listdir(self.folder)), ["brief.txt", _RU["s33"]])
         self.assertIn("Needs you", self.read_file("brief.txt"))
-        self.assertIn("Нужно от вас", self.read_file("сводка.txt"))
-        self.assertIn("call the bank", self.read_file("сводка.txt"))
+        self.assertIn(_RU["s34"], self.read_file(_RU["s35"]))
+        self.assertIn("call the bank", self.read_file(_RU["s36"]))
 
     def test_what_the_person_sees_on_the_screen_does_not_change_one_character(self):
         plain = self.cli("--lang", "ru")
         with_file = self.cli("--lang", "ru", "--to", self.folder)
         self.assertEqual(with_file[0], 0)
         self.assertEqual(with_file[2], plain[2])
-        self.assertIn(plain[2].strip(), self.read_file("сводка.txt"))
-        self.assertIn("Обновлено", self.read_file("сводка.txt"))
+        self.assertIn(plain[2].strip(), self.read_file(_RU["s37"]))
+        self.assertIn(_RU["s38"], self.read_file(_RU["s39"]))
 
     def test_the_file_is_replaced_whole_and_nothing_else_in_the_folder_is_touched(self):
         with open(os.path.join(self.folder, "IMG_1.HEIC"), "w", encoding="utf-8") as handle:
@@ -453,9 +458,9 @@ class IntoTheFolderThePhoneCanSee(FolderBase):
         code, data, _, _ = self.cli("--json", "--lang", "ru", "--to", self.folder)
         self.assertEqual(code, 0)
         self.assertEqual(data["counts"]["needs_you"], 1)
-        self.assertEqual(data["written_to"], os.path.join(self.folder, "сводка.txt"))
+        self.assertEqual(data["written_to"], os.path.join(self.folder, _RU["s40"]))
         self.assertTrue(os.path.exists(data["written_to"]))
-        self.assertIn("Нужно от вас", self.read_file("сводка.txt"))
+        self.assertIn(_RU["s41"], self.read_file(_RU["s42"]))
 
     def test_without_the_flag_nothing_is_written_anywhere(self):
         """The trap has to be armed for this to mean anything, so it is armed here and then checked: the folder
@@ -470,8 +475,8 @@ class IntoTheFolderThePhoneCanSee(FolderBase):
         finally:
             conn.close()
         self.assertEqual(self.cli("--lang", "ru", "--to", self.folder)[0], 0)     # with the flag it does land
-        self.assertEqual(os.listdir(self.folder), ["сводка.txt"])
-        os.remove(os.path.join(self.folder, "сводка.txt"))
+        self.assertEqual(os.listdir(self.folder), [_RU["s43"]])
+        os.remove(os.path.join(self.folder, _RU["s44"]))
         for args in (["--lang", "ru"], ["--lang", "en"], ["--json"]):
             code, _, out, err = self.cli(*args)
             self.assertEqual((code, err.strip()), (0, ""), args)

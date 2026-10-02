@@ -28,6 +28,10 @@ if SCRIPTS not in sys.path:
 import guard  # noqa: E402
 import tracker  # noqa: E402
 
+import json as _json
+from pathlib import Path as _Path
+_RU = _json.loads((_Path(__file__).resolve().parent / "fixtures" / "ru" / "test_guard.json").read_text(encoding="utf-8"))
+
 NOW = "2026-09-24T14:00:00+00:00"
 
 IRREVERSIBLE = {
@@ -366,11 +370,11 @@ class ANewFileIsNotAnOldOne(Base):
     to ask about."""
 
     def test_writing_a_file_that_is_not_there_yet_is_not_an_overwrite(self):
-        for command in ("echo hi > ~/Desktop/новая-заметка.md",
+        for command in (_RU["s0"],
                         "echo 'milk, bread' > ~/Documents/shopping.txt",
                         "python3 report.py 2> ~/Desktop/errors.log",
-                        "echo hi >| ~/Desktop/новая-заметка.md",
-                        "echo hi >> ~/Desktop/новая-заметка.md"):
+                        _RU["s1"],
+                        _RU["s2"]):
             allow, reason = self.decide(command)
             self.assertTrue(allow, "%s -> %s" % (command, reason))
 
@@ -413,32 +417,32 @@ class QuietingTheErrorsIsNotThrowingTheFileAway(Base):
 
 
 class TheYesIsInTheWordsAPersonUses(Base):
-    """Measured on real sessions: the person wrote "да, поправь мой список покупок" and the block stayed put.
+    """Measured on real sessions: the person wrote "yes, fix my shopping list" in Russian and the block stayed put.
 
-    Two reasons, both fixed here. The stems were the written forms of the words - `перезапис` where a person
-    types `перезапиши`, `стере` where they type `сотри` - and ordinary words for changing a file were in no
-    family at all, so the one thing the person had just asked for was the one thing their yes could not open.
+    Two reasons, both fixed here. The stems were the written forms of the words (the noun or the infinitive)
+    where a person types the imperative, and ordinary words for changing a file were in no family at all, so
+    the one thing the person had just asked for was the one thing their yes could not open.
     """
 
     def test_the_words_for_changing_a_file_open_the_change(self):
-        for said in ("да, поправь мой список покупок", "yes, edit my shopping list", "исправь его",
-                     "да, перезапиши отчёт", "yes, fix the report", "сохрани поверх старого"):
+        for said in (_RU["s4"], "yes, edit my shopping list", _RU["s5"],
+                     _RU["s6"], "yes, fix the report", _RU["s7"]):
             self.a_fresh_book()
             self.say_yes(said)
             allow, reason = self.decide("echo milk > ~/Documents/report.docx")
             self.assertTrue(allow, "%s -> %s" % (said, reason))
 
     def test_and_a_yes_about_a_change_is_still_not_a_yes_to_a_deletion(self):
-        """The other half of the measurement: one "да" about a shopping list opened `rm -rf ~/Documents` and
+        """The other half of the measurement: one "yes" about a shopping list opened `rm -rf ~/Documents` and
         `DELETE FROM` for fifteen minutes, because every word for a change lived in the deleting family."""
-        for said in ("да, поправь мой список покупок", "yes, edit my shopping list"):
+        for said in (_RU["s9"], "yes, edit my shopping list"):
             self.a_fresh_book()
             self.say_yes(said)
             self.assertTrue(self.blocked("rm -rf ~/Documents")[0], said)
             self.assertTrue(self.blocked('sqlite3 ~/notes.db "DELETE FROM notes"')[0], said)
 
     def test_the_words_for_a_deletion_open_the_deletion(self):
-        for said in ("да, сотри старые билеты", "yes, delete the old tickets", "да, удали эту папку"):
+        for said in (_RU["s10"], "yes, delete the old tickets", _RU["s11"]):
             self.a_fresh_book()
             self.say_yes(said)
             allow, reason = self.decide("rm -rf ~/Documents/old-tickets")
@@ -461,9 +465,9 @@ class TheYesIsInTheWordsAPersonUses(Base):
         self.assertTrue(self.blocked("rm -rf ~/Documents")[0])
 
     def test_a_yes_that_still_says_nothing_still_covers_nothing(self):
-        """"да" on its own names nothing, and it is not made to mean everything: the tracker line is written by
+        """"yes" on its own names nothing, and it is not made to mean everything: the tracker line is written by
         the session, and the refusal tells it what to write."""
-        for said in ("да", "ok", "yes"):
+        for said in (_RU["s13"], "ok", "yes"):
             self.a_fresh_book()
             self.say_yes(said)
             self.assertTrue(self.blocked("rm -rf ~/Documents/old")[0], said)
@@ -523,7 +527,7 @@ class TheYesIsAboutOneThing(Base):
         self.assertTrue(self.blocked("stripe charges create --amount 4000")[0])
 
     def test_the_person_may_say_it_in_russian(self):
-        self.say_yes("да, отправить письмо в магазин")
+        self.say_yes(_RU["s14"])
         self.assertFalse(self.blocked("sendmail -t < /tmp/letter.txt")[0])
         self.assertTrue(self.blocked("rm -rf ~/Documents/old")[0])
 

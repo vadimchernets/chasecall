@@ -54,8 +54,9 @@ After that, say nothing about it at all - unless the script says it could not wr
 either way, so read the exit status: 0 means the file is in their folder, 3 means it is not** and the line on
 stderr says why (nobody has said yes yet, they said no, the folder has not synced, or the name is taken).
 
-One case it will report: there is already a `brief.txt` (or its Russian-language name, `сводка.txt`) in that
-folder that is **not ours** -
+One case it will report: there is already a `brief.txt` (or the matching per-language name from
+lang/<code>.json's "brief.file" - the Russian-language name from lang/ru.json) in that folder that is **not
+ours** -
 not ours meaning it does not carry our own mark inside it, whatever we may have written at that path before.
 The person deletes our brief and leaves their own note under the same name; that note is theirs. Never work
 around it. Say what it found, ask whose file that is, and leave it exactly where it is.

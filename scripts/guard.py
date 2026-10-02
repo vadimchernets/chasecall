@@ -51,7 +51,7 @@ READ_ONLY_BINS = {
 GIT_READS = {"status", "log", "diff", "show", "branch", "remote", "ls-files", "blame", "describe", "rev-parse"}
 # Our own scripts touch nothing but our own database, so their arguments are safe even when they are full of
 # frightening words: an evidence line often says "the money is back on the card", and that is not a payment.
-OUR_SCRIPTS = ("tracker.py", "brief.py", "guard.py", "routine.py", "inbox.py")
+OUR_SCRIPTS = ("tracker.py", "brief.py", "guard.py", "routine.py", "inbox.py", "check_language.py")
 INTERPRETERS = {"python", "python3", "py"}
 # `env` belongs here, not among the readers: `env sendmail them@example.com` still sends the letter.
 PREFIXES = {"sudo", "doas", "time", "nohup", "command", "builtin", "exec", "nice", "xargs", "caffeinate", "env"}
@@ -104,25 +104,23 @@ LONG_DIGITS = re.compile(r"\b\d{14,19}\b")
 OWN_NAME = re.compile(r"^[\w.@+-]+\.[A-Za-z0-9]{1,8}$")
 ADDRESS_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.-]+")
 
-# The words that make a written-down yes count for a family. Both languages: the person says it in Russian, the
-# session writes it down in whatever it was thinking in. The stems have to be the forms a person really uses:
-# `перезапис` is the noun, and what somebody types is `перезапиши`; `стере` is the infinitive, and what they type
-# is `сотри`. A stem that only matches the written form is a yes that never arrives.
-FAMILY_WORDS = {
-    "mail": ("send", "sent", "mail", "email", "letter", "write", "reply", "отправ", "письм", "почт", "напис"),
-    "money": ("pay", "payment", "card", "checkout", "invoice", "charge", "bill", "оплат", "плат", "карт",
-              "счёт", "счет", "деньг"),
-    "delete": ("delete", "remove", "erase", "wipe", "overwrite", "rm ", "удал", "снос", "очист", "стере",
-               "сотри", "перезапис", "перезапиш"),
-    "cancel": ("cancel", "unsubscribe", "отмен", "отпис", "аннул"),
-}
-# Changing a file the person keeps is a family of its own, and a narrower one than deleting. "да, поправь мой
-# список покупок" is a yes to editing one list; until this existed it was either nothing at all - the word was in
-# no family, and the block stayed in front of the very thing the person had just asked for - or, written down as
-# "deleting or overwriting files", a yes that opened `rm -rf ~/Documents` and `DELETE FROM` for fifteen minutes.
+# The words that make a written-down yes count for a family, in every language this plugin speaks - on equal
+# footing, loaded from lang/<code>.json ("guard.family_words"). The stems have to be the forms a person really
+# uses, not the dictionary form: a noun stem that only matches the written form is a yes that never arrives
+# (see lang/ru.json for a worked example of the gap between the two).
+FAMILY_WORDS = {"mail": [], "money": [], "delete": [], "cancel": []}
+for _lang_code in tracker.LANGS:
+    for _family, _stems in tracker.load_lang(_lang_code)["guard"]["family_words"].items():
+        FAMILY_WORDS[_family].extend(_stems)
+FAMILY_WORDS = {_family: tuple(_stems) for _family, _stems in FAMILY_WORDS.items()}
+# Changing a file the person keeps is a family of its own, and a narrower one than deleting - a yes to edit one
+# list must not open a deletion. Until this family existed, such a word was either in no family at all - the
+# block stayed in front of the very thing the person had just asked for - or, written down as "deleting or
+# overwriting files", a yes that opened `rm -rf ~/Documents` and `DELETE FROM` for fifteen minutes (see
+# lang/ru.json for the phrase that was measured on a real session).
 # A yes to a deletion opens a change too: somebody who agreed to lose the file will not mind it rewritten.
-EDIT_WORDS = ("edit", "fix", "change", "correct", "amend", "modify", "update", "rewrite", "replace", "save",
-              "поправ", "исправ", "измен", "редактир", "перепиш", "допиш", "сохран", "обнов")
+EDIT_WORDS = tuple(word for _lang_code in tracker.LANGS
+                   for word in tracker.load_lang(_lang_code)["guard"]["edit_words"])
 FAMILY_WORDS["overwrite"] = FAMILY_WORDS["delete"] + EDIT_WORDS
 
 # How a yes should be written down so that it says no more than the person said: the file, the person, the
@@ -449,10 +447,18 @@ def hints_of(command):
     return found
 
 
+def _says(said, stem):
+    """A stem inside the words; a stem written `^stem` (lang/<code>.json) only at the start of a word, so that
+    one language's stem does not open the gate on another language's word (Portuguese `pagar` inside `apagar`)."""
+    if stem.startswith("^"):
+        return re.search(r"(?<!\w)" + re.escape(stem[1:]), said) is not None
+    return stem in said
+
+
 def approval_covers(text, family, hints):
     """A yes counts only if it is about this: the family in words, or the command named outright."""
     said = " " + str(text or "").lower() + " "
-    if any(word in said for word in FAMILY_WORDS.get(family, ())):
+    if any(_says(said, word) for word in FAMILY_WORDS.get(family, ())):
         return True
     return any(hint in said for hint in hints)
 

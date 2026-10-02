@@ -1,0 +1,156 @@
+{
+  "brief": {
+    "header": "chasecall - %s",
+    "done": "Hecho en las ultimas 24 horas",
+    "waiting": "Esperando respuesta",
+    "needs_you": "Necesita de usted",
+    "mine": "Hoy me encargo yo",
+    "empty_all": "Todavia no hay nada en la lista. Diga: \"persigue <lo que sea>\" - y lo tomare y seguire hasta el final.",
+    "empty_section": "  nada",
+    "next_step": "siguiente paso",
+    "attempt": "intento",
+    "evidence": "prueba",
+    "goal": "objetivo",
+    "night": "Ventana nocturna %02d:00-%02d:00: ahora no le escribo a nadie, enviare por la manana.",
+    "nothing_for_you": "  nada - usted no tiene que hacer nada ahora mismo",
+    "out_of_attempts": "intentos agotados, se lo paso a usted",
+    "tail": "En una linea: %s",
+    "tail_nothing": "nada espera de usted",
+    "tail_some": "%d tarea(s) esperan su paso",
+    "file": "resumen.txt",
+    "updated": "Actualizado %s (chasecall:brief). Este archivo se vuelve a escribir cada vez; nada mas en la carpeta se toca.",
+    "ask": "Puedo dejar este resumen en esa carpeta como archivo, para que usted lo lea desde el telefono. Tiene los nombres de sus tareas, con quien las gestiona, los telefonos y las notas. Esa carpeta va a su nube - Google Drive o Dropbox -, asi que el archivo tambien ira alli. Lo dejo?",
+    "not_agreed": "no se escribio nada: nadie ha dicho que si a que el resumen quede en %s, y desde ahi viaja a la nube",
+    "ask_how": "hagale a la persona la pregunta de arriba, con sus propias palabras, y repita el mismo comando con --agreed si dice que si, o con --declined si dice que no",
+    "declined": "el resumen no se deja en %s: la persona dijo que no. No se escribio nada.",
+    "occupied": "ya existe un archivo llamado %s en %s y no es nuestro. Se dejo tal cual esta y no se escribio nada - pregunte a la persona que archivo es, o use otra carpeta.",
+    "occupied_again": "el archivo llamado %s en %s no es el que escribimos nosotros: nuestro resumen ya no esta ahi y bajo ese nombre hay ahora un archivo de otra persona. Se dejo tal cual esta y no se escribio nada - pregunte a la persona que archivo es, o use otra carpeta.",
+    "no_folder": "diga en que carpeta debe quedar el resumen",
+    "not_here": "la carpeta %s no esta en este ordenador ahora mismo; el resumen no se escribio",
+    "bad_folder": "%s",
+    "failed": "no se pudo escribir %s: %s"
+  },
+  "inbox": {
+    "kinds": {
+      "photo": "foto",
+      "note": "nota",
+      "voice": "nota de voz",
+      "video": "video",
+      "document": "documento",
+      "other": "archivo"
+    },
+    "sizes": [
+      "B",
+      "KB",
+      "MB",
+      "GB"
+    ],
+    "done_dir": "hecho",
+    "no_folder_yet": "Todavia no se ha indicado ninguna carpeta del telefono.",
+    "folder_is": "La carpeta del telefono: %s",
+    "folder_not_here": " - no esta en este ordenador ahora mismo",
+    "folder_gone": "La carpeta %s no esta en este ordenador ahora mismo, no hay nada que mirar.",
+    "head_new": "%d nuevo(s) del telefono:",
+    "head_pending": "%d sin clasificar todavia:",
+    "head_all": "%d en la carpeta:",
+    "in_folder": "(en %s)",
+    "nothing_new": "Nada nuevo del telefono. (en %s)",
+    "arriving": "no ha llegado del todo - la proxima vez estara completo",
+    "is_sorted": "clasificado",
+    "shown_before": "%d mas se mostraron antes y siguen sin clasificar.",
+    "pending_of_all": "De ellos, %d siguen sin clasificar.",
+    "marked": "Anotado como clasificado: %s. El archivo en si no se tocó.",
+    "moved": "%s ahora esta en la carpeta %s dentro de la misma carpeta. No se borro nada.",
+    "moved_renamed": "%s ahora esta en la carpeta %s dentro de la misma carpeta, con el nombre %s: ya habia un archivo con el primer nombre, y ambos se conservan.",
+    "already_done": "%s ya estaba en la carpeta %s; solo se anoto la nota.",
+    "need_folder": "Diga que carpeta pueden ver tanto el telefono como este ordenador.",
+    "no_folder_set": "Todavia no se ha indicado ninguna carpeta del telefono.",
+    "too_high": "No voy a usar %s: es la carpeta de inicio o una carpeta del nivel mas alto, con todo lo suyo dentro. Indique una carpeta propia dentro de Google Drive o Dropbox, la que usa para enviar cosas desde el telefono.",
+    "crowded": "%s ya tiene %d cosas, y entre ellas no se veria lo que acaba de llegar de la calle. Si esta no es la carpeta que usa desde el telefono, indique esa otra. Si es la correcta, lo ya clasificado puede moverse a la carpeta de clasificados dentro de ella - yo lo hago tras su si -, o puede ordenar los archivos usted mismo a mano; luego vuelva a indicarla.",
+    "not_a_folder": "%s es un archivo, no una carpeta.",
+    "need_name": "Diga que archivo.",
+    "no_such_file": "No hay ningun archivo llamado %s en la carpeta del telefono.",
+    "outside": "%s no esta en la carpeta del telefono. Solo toco esa carpeta, asi que no lo voy a mover.",
+    "bad_into": "Un archivo clasificado va a %s y a ningun otro sitio.",
+    "move_failed": "%s no se pudo mover: %s. No se perdio nada; sigue donde estaba."
+  },
+  "routine": {
+    "how_to": "El fondo ya existe en el propio Claude Code, y es el que funciona:\n  1. Abra la aplicacion Claude -> la pestana Code.\n  2. Routines -> New routine -> Local.\n  3. Elija la frecuencia: Hourly / Daily / Weekdays / Weekly.\n  4. Pegue el prompt de `routine.py prompt` y guarde.\nFunciona mientras la aplicacion esta abierta y el ordenador despierto; una ejecucion perdida se recupera despues.\nTambien puede simplemente decir en el chat: \"revisa mis tareas cada manana a las nueve\".",
+    "no_claude": "No veo `claude` en el PATH, asi que no voy a configurar una ejecucion de fondo - sus tareas revivirán en su proxima sesion, y no se pierde nada.",
+    "mac_no_install": "En macOS no instalo nada por mi cuenta: una tarea de fondo puesta con launchd es cortada por la proteccion de privacidad del sistema en cuanto toca sus archivos, y usted creeria que le estan ayudando cuando no es asi. Use la Routine de arriba - esa si funciona de verdad.",
+    "labels": {
+      "head": "chasecall, trabajo de fondo - %s",
+      "claude": "claude en PATH:  ",
+      "db": "base de datos:   ",
+      "alive": "tareas activas:  ",
+      "sweep": "ultima revision: ",
+      "no": "no",
+      "never": "nunca",
+      "not_yet": " (aun no creada)",
+      "ago": "hace %s",
+      "windows": "Tarea de Windows: "
+    },
+    "not_windows": "esto es para Windows; en %s funciona la Routine de la pestana Code"
+  },
+  "tracker": {
+    "busy": "el archivo de tareas esta ocupado ahora mismo - algo mas le esta escribiendo. No se cambio nada; intentelo de nuevo en un momento.",
+    "unwritable": "no se puede escribir en el archivo de tareas %s - los permisos no lo permiten. No se cambio nada, y esto no se arreglara solo.",
+    "not_ours": "%s no es un archivo de tareas de Chasecall - no se leyo ni se escribio nada en el. Apartelo, o diga donde esta el verdadero."
+  },
+  "guard": {
+    "family_words": {
+      "mail": [
+        "^envia",
+        "^envie",
+        "^enviar",
+        "^envío",
+        "^envio",
+        "correo",
+        "^carta"
+      ],
+      "money": [
+        "^pagar",
+        "^pague",
+        "^pago",
+        "^paga",
+        "^págu",
+        "tarjeta",
+        "factura"
+      ],
+      "delete": [
+        "^borr",
+        "^bórr",
+        "elimin"
+      ],
+      "cancel": [
+        "cancel",
+        "anul"
+      ]
+    },
+    "edit_words": [
+      "edit",
+      "modific",
+      "corrig",
+      "cambi",
+      "actualiz",
+      "reescrib",
+      "^guardar",
+      "^guarde",
+      "^guárd"
+    ],
+    "yes_example": {
+      "delete": "borra %s",
+      "overwrite": "edita %s",
+      "mail": "envia la carta a %s",
+      "money": "paga %s",
+      "cancel": "cancela %s"
+    },
+    "yes_unnamed": {
+      "delete": "<este unico archivo, por su nombre>",
+      "overwrite": "<este unico archivo, por su nombre>",
+      "mail": "<esta unica direccion>",
+      "money": "<este unico importe, a esta unica tienda>",
+      "cancel": "<esta unica reserva>"
+    }
+  }
+}

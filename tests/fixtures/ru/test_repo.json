@@ -1,0 +1,22 @@
+{
+  "s0": "а не приказ",
+  "s1": "по-русски",
+  "s2": "`setup` is `disable-model-invocation: true`, so «настрой дожим» reaches nothing at all - and that was\n        the first thing the Russian README told its reader to say. The one command that has to be typed is\n        named in both languages now, and every other command is named in both or in neither.",
+  "s3": "настрой дожим",
+  "s4": "\"Перед каждой командой в терминале работает проверка\" - read by someone who is not a programmer,\n        that says their own terminal is being watched over, which is the opposite of true: the hook runs in\n        front of the commands the assistant proposes, and nothing at all in front of what they type themselves.\n        A safety promise that is wider than the safety is the one kind of mistake that gets somebody hurt.",
+  "s5": "Перед каждой командой в терминале",
+  "s6": "которую собирается выполнить сам помощник",
+  "s7": "ваш терминал остаётся полностью вашим",
+  "s8": "\"Требования - в README.md, по-английски\" sent the reader who has no English to an English page to\n        find out whether their own computer will run this at all. Those three facts are short; they are said\n        here now.",
+  "s9": "требования и раздел о безопасности",
+  "s10": "\"Скажите «да» именно этому действию, и оно пройдёт\" is a straighter line than the product can draw:\n        what opens the gate is the session writing the yes down, not the person saying it.",
+  "s11": "запишет ваше согласие",
+  "s12": "и оно пройдёт",
+  "s13": "Заведите внутри неё отдельную папку и назовите её",
+  "s14": "`done` внутри неё же",
+  "s15": "руками",
+  "s16": "переводчик",
+  "s17": "письмом",
+  "s18": "записыв",
+  "s19": "Португалии"
+}

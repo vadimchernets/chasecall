@@ -17,8 +17,24 @@ import re
 import sqlite3
 import sys
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 DEFAULT_DB = os.path.join("~", ".claude", "chasecall", "chasecall.db")
+
+# Every language the product speaks, on equal footing - English and Russian were here first; Spanish,
+# Portuguese and Ukrainian are not guests, they load from the same files in the same way.
+LANGS = ("en", "ru", "es", "pt", "uk")
+LANG_DIR = Path(__file__).resolve().parent.parent / "lang"
+_LANG_CACHE = {}
+
+
+def load_lang(code):
+    """The lang/<code>.json table for one language - every sentence this plugin says to a person, loaded
+    once and cached. A language not on disk falls back to English rather than crashing a session."""
+    if code not in _LANG_CACHE:
+        path = LANG_DIR / ("%s.json" % (code if code in LANGS else "en"))
+        _LANG_CACHE[code] = json.loads(path.read_text(encoding="utf-8"))
+    return _LANG_CACHE[code]
 
 STATES = ("open", "waiting", "blocked", "done", "dropped")
 LIVE_STATES = ("open", "waiting", "blocked")       # a task that still exists for us
@@ -37,29 +53,16 @@ DEFAULT_MAX_ATTEMPTS = 3
 # shown a Python traceback. Both languages: this sentence reaches the person through `brief.py --lang ru` and
 # `inbox.py --lang ru`, and an English one there would be the only English line on their screen.
 BUSY_WAIT_SECONDS = 10.0
-BUSY_MESSAGES = {
-    "en": ("the task file is busy right now - something else is writing to it. Nothing was changed; "
-           "try again in a moment."),
-    "ru": ("файл с делами сейчас занят - в него пишет что-то другое. Ничего не изменено, "
-           "попробуйте ещё раз через минуту."),
-}
+# All three message tables below come from lang/<code>.json now (key "tracker") - built once per language,
+# at import time, so the dict-access patterns `BUSY_MESSAGES[lang]` used all over this plugin keep working.
+BUSY_MESSAGES = {code: load_lang(code)["tracker"]["busy"] for code in LANGS}
 # Not the same thing at all, and the difference is the whole of the advice: a lock passes by itself in a moment,
 # permissions do not, and "try again in a moment" sends the person round that loop for ever.
-UNWRITABLE_MESSAGES = {
-    "en": ("the task file %s cannot be written to - the permissions on it do not allow it. Nothing was changed, "
-           "and this one will not pass by itself."),
-    "ru": ("в файл с делами %s не записать - права на него этого не позволяют. Ничего не изменено, и само это "
-           "не пройдёт."),
-}
+UNWRITABLE_MESSAGES = {code: load_lang(code)["tracker"]["unwritable"] for code in LANGS}
 # And the third thing that can be wrong with a file: it is not our file. A text file, half a download, or a
 # database somebody else made with a `tasks` of their own that is not a table. We read nothing out of it and we
 # write nothing into it - and the person is told which file we mean, because they chose it.
-NOT_OURS_MESSAGES = {
-    "en": ("%s is not a Chasecall task file - nothing was read from it and nothing was written to it. Move it "
-           "aside, or say where the real one is."),
-    "ru": ("%s - это не файл дел Chasecall: из него ничего не прочитано и в него ничего не записано. Уберите "
-           "его в сторону или скажите, где настоящий."),
-}
+NOT_OURS_MESSAGES = {code: load_lang(code)["tracker"]["not_ours"] for code in LANGS}
 BUSY_WORDS = ("locked", "busy")                    # what sqlite says when it is the other process, not the mode
 PERMISSION_WORDS = ("readonly", "read-only", "permission", "denied", "unable to open")
 

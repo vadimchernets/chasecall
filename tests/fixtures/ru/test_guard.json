@@ -1,0 +1,17 @@
+{
+  "s0": "echo hi > ~/Desktop/новая-заметка.md",
+  "s1": "echo hi >| ~/Desktop/новая-заметка.md",
+  "s2": "echo hi >> ~/Desktop/новая-заметка.md",
+  "s3": "Measured on real sessions: the person wrote \"да, поправь мой список покупок\" and the block stayed put.\n\n    Two reasons, both fixed here. The stems were the written forms of the words - `перезапис` where a person\n    types `перезапиши`, `стере` where they type `сотри` - and ordinary words for changing a file were in no\n    family at all, so the one thing the person had just asked for was the one thing their yes could not open.\n    ",
+  "s4": "да, поправь мой список покупок",
+  "s5": "исправь его",
+  "s6": "да, перезапиши отчёт",
+  "s7": "сохрани поверх старого",
+  "s8": "The other half of the measurement: one \"да\" about a shopping list opened `rm -rf ~/Documents` and\n        `DELETE FROM` for fifteen minutes, because every word for a change lived in the deleting family.",
+  "s9": "да, поправь мой список покупок",
+  "s10": "да, сотри старые билеты",
+  "s11": "да, удали эту папку",
+  "s12": "\"да\" on its own names nothing, and it is not made to mean everything: the tracker line is written by\n        the session, and the refusal tells it what to write.",
+  "s13": "да",
+  "s14": "да, отправить письмо в магазин"
+}
