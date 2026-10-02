@@ -9,7 +9,14 @@ How it answers, and why it matters: on anything it does not recognise as irrever
 0. That means "I have no opinion" - Claude Code then asks the person for permission exactly as it always would.
 It never prints an approval, because in a PreToolUse hook an approval is not "carry on", it is "skip the
 permission system", and a plugin that quietly switched permissions off for every command in every project would
-be a lockpick sold as a shield. To block, it writes the reason on stderr and exits 2.
+be a lockpick sold as a shield. To block, it prints a "deny" decision with the reason (JSON on stdout, exit 0).
+
+Why a decision and not exit 2 (02.10.2026, measured on Claude Code 2.1.288 with a real `claude -p`): on exit 2
+Claude Code puts the WHOLE hook command in front of the reason - "PreToolUse:Bash hook error: [exec sh ".../
+python.sh" ... trap { continue }; & ([scriptblock]::Create(...))]: chasecall: ..." - two lines of launcher that
+mean nothing to the person and bury the one sentence that matters. A "deny" decision blocks the same (with
+--dangerously-skip-permissions too) and arrives as "PreToolUse:Bash hook error: chasecall: ..." - the reason
+alone.
 
 How the yes is given: the session asks in plain words, the person answers, and the session writes down what they
 agreed to -
@@ -79,15 +86,35 @@ TEMP_PREFIXES = ("/tmp/", "/private/tmp/", "/var/tmp/", "/var/folders/", "/priva
 
 MAIL_SERVICES = re.compile(r"\b(?:mailgun|sendgrid|postmark|mailchimp|sparkpost|mandrill)\b", re.I)
 MAIL_URL = re.compile(r"https?://\S*(?:mail|smtp|messages?/send)", re.I)
-MAIL_IN_CODE = re.compile(r"\bsmtplib\b|\bsmtp\.\w|\bSMTP\s*\(", re.I)
+MAIL_IN_CODE = re.compile(r"\bsmtplib\b|\bsmtp\.\w|\bSMTP\s*\(|\bSmtpClient\b|Outlook\.Application[\s\S]*\.Send\s*\(", re.I)
 OSASCRIPT_MAIL = re.compile(r"\bosascript\b[\s\S]*\bmail\b", re.I)
 MONEY_URL = re.compile(r"https?://\S*(?:checkout|payment|/pay\b|billing|invoice|charge|stripe|card)", re.I)
 CANCEL_WORD = re.compile(r"\b(?:cancel|unsubscribe)\b", re.I)
 CANCEL_URL = re.compile(r"https?://\S*(?:cancel|unsubscribe)", re.I)
+# PowerShell spellings too: `-Method Post`, `-Method:Post`, `-Me 'Post'` (PowerShell takes any unambiguous start of
+# a parameter name), `-CustomMethod POST`, and a body by `-Body`, `-Form` or `-InFile`.
 NETWORK_WRITE = re.compile(r"-X\s*(?:POST|PUT|PATCH|DELETE)|--data\b|--data-\w+|\s-d\s|--form\b|\s-F\s|"
-                           r"\bwget\b[\s\S]*--post|-Method\s+['\"]?(?:POST|PUT|PATCH|DELETE)\b|\s-Body\b|\s-Form\b", re.I)
+                           r"\bwget\b[\s\S]*--post|-(?:Me\w*|CustomMethod)(?:\s+|\s*:\s*)['\"]?(?:POST|PUT|PATCH|DELETE)\b|"
+                           r"\s-(?:Body|Form|InFile)\b", re.I)
 SQL_DELETE = re.compile(r"\bdelete\s+from\b|\bdrop\s+(?:table|database)\b", re.I)
-PIPE_TO_SHELL = re.compile(r"\|\s*(?:sudo\s+)?(?:sh|bash|zsh|ksh|dash|python3?|perl|ruby|node)\b", re.I)
+PIPE_TO_SHELL = re.compile(r"\|\s*(?:sudo\s+)?(?:sh|bash|zsh|ksh|dash|python3?|perl|ruby|node|iex|invoke-expression)\b", re.I)
+# PowerShell's other way of running what the network sends: `iex (irm https://...)`, `iex ((New-Object
+# Net.WebClient).DownloadString('https://...'))` - the same thing as `curl ... | sh`, without the pipe.
+RUN_FROM_NETWORK = re.compile(r"\b(?:iex|invoke-expression)\b[\s\S]*?(?:\b(?:irm|iwr|curl|wget|invoke-restmethod|"
+                              r"invoke-webrequest)\b|\.DownloadString\s*\()", re.I)
+# .NET from PowerShell (02.10.2026): `[IO.File]::Delete(...)`, `[System.IO.File]::WriteAllText(...)`,
+# `[IO.Directory]::Delete(..., $true)`. The class, the method and its arguments as written; the path is read by
+# the same `theirs()` as everything else.
+DOTNET_IO = re.compile(r"\[\s*(?:System\.)?IO\.(File|Directory)\s*\]::(\w+)\s*\(([^()]*(?:\([^()]*\)[^()]*)*)\)", re.I)
+DOTNET_ARG = re.compile(r"\s*('[^']*'|\"[^\"]*\"|[^,]+)\s*(?:,|$)")
+DOTNET_WRITES = {"writealltext", "writeallbytes", "writealllines", "appendalltext", "appendalllines", "create",
+                 "createtext", "appendtext", "openwrite"}
+DOTNET_OVERWRITES_SECOND = {"copy", "replace", "move"}      # (from, to): what is lost is the `to` that is there
+# cmd.exe inside any shell: `cmd /c del /q ...`, `cmd.exe /k rd /s /q ...` - what follows /c or /k is a command
+# of its own, and `del`, `rd`, `rmdir`, `erase` take their switches as `/s`, `/q`, never as file names.
+CMD_SWITCH = re.compile(r"^/[ck]$", re.I)
+CMD_FLAG = re.compile(r"^(?:/[A-Za-z?](?::\S*)?)+$")
+CMD_DELETES = {"del", "erase", "rd", "rmdir"}
 # A redirection that empties one of the person's files, in the forms a shell really accepts: `>`, `>>`, a file
 # number in front of it (`2>`, `2>>`) and the "yes, clobber it" form (`>|`). The old pattern refused to look at
 # anything preceded by a digit, so `2> ~/Documents/report.docx` emptied the file in silence, and `>|` fell
@@ -168,6 +195,8 @@ def one_command_of_ours(command):
     """
     if any(mark in command for mark in ("`", "$(", "\n", "\r")):
         return False                               # a substitution or a second line: more than one command here
+    if command.lstrip().startswith("& "):          # PowerShell's call operator: `& "...\\python.ps1" ...` is one command
+        command = command.lstrip()[2:]
     try:
         # `punctuation_chars` is what makes this safe: `list; rm -rf ~` has no space before the `;`, and a
         # plain split would hand back `list;` as a word and call the whole line one command.
@@ -182,7 +211,7 @@ def one_command_of_ours(command):
         tokens.pop(0)
     if not tokens:
         return False
-    return is_ours(os.path.basename(tokens[0].strip("()`\"'")), tokens[1:])
+    return is_ours(base_name(tokens[0].strip("()`\"'")), tokens[1:])
 
 
 def first_token(segment):
@@ -191,10 +220,28 @@ def first_token(segment):
         tokens.pop(0)
     if not tokens:
         return "", []
-    name = os.path.basename(tokens[0].strip("()`\"'"))
-    if PS_VERB_NOUN.match(name):
-        name = name.lower()                       # PowerShell: `Remove-Item` and `remove-item` are one command
+    name = base_name(tokens[0].strip("()`\"'"))
+    if PS_VERB_NOUN.match(name) or name.lower() in DELETE_BINS | {"cmd", "cmd.exe"}:
+        name = name.lower()                       # PowerShell and cmd: `Remove-Item`/`remove-item`, `DEL`/`del`
     return name, tokens[1:]
+
+
+def base_name(path):
+    """The last part of a path written with either slash: on a Mac `C:\\x\\python.ps1` is one name otherwise."""
+    return re.split(r"[\\/]", path.rstrip("\\/"))[-1] if path else path
+
+
+def inside_cmd(name, rest):
+    """`cmd /c del /q x` -> ("del", ["/q", "x"]); anything else comes back as it was."""
+    if name not in ("cmd", "cmd.exe"):
+        return None
+    for index, token in enumerate(rest):
+        if CMD_SWITCH.match(token):
+            inner = " ".join(rest[index + 1:]).strip()
+            if len(inner) > 1 and inner[0] == inner[-1] == '"':
+                inner = inner[1:-1]
+            return inner
+    return None
 
 
 def arguments(rest):
@@ -217,13 +264,28 @@ def without_redirections(rest):
     return kept
 
 
+LAUNCHERS = ("python.sh", "python.ps1")
+
+
 def is_ours(name, rest):
-    """One of our own scripts, run directly or through python - recognised by the first words, not by a mention."""
+    """One of our own scripts, run directly or through python - recognised by the first words, not by a mention.
+
+    Also through the step-0 launcher the skills use since 02.10.2026, in sh and in PowerShell:
+        sh ".../hooks/python.sh" chasecall say scripts/tracker.py log 3 note "..."
+        & ".../hooks/python.ps1" chasecall say scripts/tracker.py log 3 note "..."
+    The launcher's three words are fixed (plugin, mode, script), so the script is the third one, never a mention.
+    """
     if name in OUR_SCRIPTS:
         return True
+    if name in ("sh", "bash", "&", "powershell", "pwsh") and rest:
+        words = [token for token in rest if not token.startswith("-")] if name in ("powershell", "pwsh") else rest
+        if words and base_name(words[0].strip("'\"")) in LAUNCHERS:
+            name, rest = base_name(words[0].strip("'\"")), words[1:]
+    if name in LAUNCHERS:
+        return len(rest) >= 3 and base_name(rest[2].strip("'\"")) in OUR_SCRIPTS
     if name in INTERPRETERS:
         for token in rest:
-            if os.path.basename(token.strip("'\"")) in OUR_SCRIPTS:
+            if base_name(token.strip("'\"")) in OUR_SCRIPTS:
                 return True
             if not token.startswith("-"):
                 return False
@@ -253,6 +315,8 @@ def absolute(target):
     if not raw:
         return ""
     raw = HOME_WORD.sub("~", raw)                 # `$HOME/x`, `$env:USERPROFILE\x`, `%USERPROFILE%\x` are `~/x`
+    if raw.startswith("~\\"):
+        raw = raw.replace("\\", "/")              # `~\Documents` is `~/Documents`, on Windows and in a test on a Mac
     path = os.path.expanduser(raw)
     if not os.path.isabs(path):
         path = os.path.join(os.path.normpath(os.getcwd()), path)
@@ -348,6 +412,8 @@ def deletes_something(segment, name, rest):
     """-> (what it looks like, the names a yes could point at) when something is destroyed here, else None."""
     if name in DELETE_BINS:
         targets = arguments(rest)
+        if name in CMD_DELETES:
+            targets = [target for target in targets if not CMD_FLAG.match(target)]
         if not targets:
             return "deleting files", []
         mine = [target for target in targets if theirs(target)]
@@ -398,6 +464,30 @@ def cancels(segment, name, rest):
     return None
 
 
+def dotnet_io(command):
+    """-> (family, what it looks like, names) for a .NET file call that destroys one of the person's files."""
+    for kind, method, inner in DOTNET_IO.findall(command):
+        kind, method = kind.lower(), method.lower()
+        args = [arg.strip() for arg in DOTNET_ARG.findall(inner) if arg.strip()]
+        literal = [arg for arg in args if not arg.strip("'\"").startswith(("$", "("))
+                   or HOME_WORD.match(arg.strip("'\""))]
+        if method == "delete":
+            if not args or args[0] not in literal:
+                return "delete", "deleting files", []              # a path only known when it runs
+            if theirs(args[0]):
+                what = "deleting a folder of yours" if kind == "directory" else "deleting your files"
+                return "delete", what, own_names(args[:1])
+            continue
+        target = None
+        if kind == "file" and method in DOTNET_WRITES and args:
+            target = args[0]
+        elif kind == "file" and method in DOTNET_OVERWRITES_SECOND and len(args) > 1:
+            target = args[1]
+        if target and target in literal and theirs(target) and already_there(target):
+            return "overwrite", "overwriting one of your files", own_names([target])
+    return None
+
+
 def dangerous(command):
     """-> (family, what it looks like, the names a yes could point at) for the first irreversible thing, else
     None."""
@@ -406,6 +496,11 @@ def dangerous(command):
         return "delete", "running a script straight off the network", []
     if one_command_of_ours(command):
         return None                               # our own script, with a file name from a phone in its hands
+    if RUN_FROM_NETWORK.search(command):
+        return "delete", "running a script straight off the network", []
+    found = dotnet_io(command)
+    if found:
+        return found
     for segment in segments(command):
         for target in REDIRECT_RE.findall(segment):
             # `echo x > ~/Documents/report.docx` empties a file that is there. The same line pointed at a name
@@ -416,6 +511,12 @@ def dangerous(command):
         if is_read_only(segment):
             continue
         name, rest = first_token(segment)
+        inner = inside_cmd(name, rest)
+        if inner is not None:                     # `cmd /c del ...`: judge the command cmd is handed
+            found = dangerous(inner) if inner else None
+            if found:
+                return found
+            continue
         for family, look in (("delete", deletes_something), ("mail", sends_mail),
                              ("money", spends_money), ("cancel", cancels)):
             found = look(segment, name, rest)
@@ -502,8 +603,18 @@ def approvals(now=None, window_s=APPROVAL_WINDOW_S, path=None):
     return fresh
 
 
-def reason_text(family, what, command, near_miss=None, names=()):
-    tracker_py = os.path.join(HERE, "tracker.py")
+def tracker_command(tool=""):
+    """How the session runs tracker.py from here: through the step-0 launcher, which finds a real Python 3 on
+    every system (`python3` is often missing on Windows, or is the Microsoft Store stub) - in the shell it has."""
+    root = os.path.dirname(HERE)
+    if str(tool).split("__")[-1].strip().lower() == "powershell":
+        return '& "%s" chasecall say "%s"' % (os.path.join(root, "hooks", "python.ps1"), os.path.join(HERE, "tracker.py"))
+    return 'sh "%s" chasecall say "%s"' % (os.path.join(root, "hooks", "python.sh").replace("\\", "/"),
+                                           os.path.join(HERE, "tracker.py").replace("\\", "/"))
+
+
+def reason_text(family, what, command, near_miss=None, names=(), tool=""):
+    tracker_py = tracker_command(tool)
     minutes = APPROVAL_WINDOW_S // 60
     lines = ["chasecall: this looks like %s, and nothing irreversible happens without the person's yes." % what]
     if near_miss:
@@ -522,11 +633,11 @@ def reason_text(family, what, command, near_miss=None, names=()):
                                              YES_UNNAMED.get(family, "<this one thing>"))
     lines.append("Ask them in plain words, and when they say yes write down what they agreed to as narrowly as "
                  "it is true - the file, the person, the amount, and never a kind of action: "
-                 "python3 %s log <id> approved \"%s\". The narrower the words, the less the next %d minutes "
+                 "%s log <id> approved \"%s\". The narrower the words, the less the next %d minutes "
                  "open; a yes written as a kind of action opens every action of that kind." % (tracker_py, named,
                                                                                                minutes))
     lines.append("If it is their move - a call, a payment, a signature - use: "
-                 "python3 %s human <id> \"<what they must do>\"." % tracker_py)
+                 "%s human <id> \"<what they must do>\"." % tracker_py)
     lines.append("Command: " + command.strip()[:200])
     return " ".join(lines)
 
@@ -551,7 +662,8 @@ def decide(raw, now=None, path=None):
             if approval_covers(approval["text"], family, hints):
                 return True, ""
             near_miss = near_miss or approval
-        return False, reason_text(family, what, command, near_miss, names)
+        tool = data.get("tool_name") or data.get("toolName") or data.get("tool") or ""
+        return False, reason_text(family, what, command, near_miss, names, tool)
     except Exception:                             # noqa: BLE001 - a gate that jams shut gets switched off
         return True, ""
 
@@ -564,8 +676,14 @@ def main(argv=None):
     allow, reason = decide(raw)
     if allow:
         return 0                                  # silence: Claude Code asks the person as it always would
-    sys.stderr.write(reason + "\n")
-    return 2
+    sys.stdout.write(json.dumps(deny(reason), ensure_ascii=False) + "\n")
+    return 0
+
+
+def deny(reason):
+    """The block, as Claude Code's PreToolUse decision: only ever a deny, never an approval (see the top of this file)."""
+    return {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny",
+                                   "permissionDecisionReason": reason}}
 
 
 if __name__ == "__main__":

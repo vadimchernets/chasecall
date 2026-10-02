@@ -28,9 +28,11 @@ FOLDER = "/plugin marketplace add <"
 # The only tool we hand a skill besides our own scripts. Everything else - `Write`, `Edit`, `WebFetch` - has to
 # be argued for here first, in a test, and not slipped into a line of YAML.
 TOOLS_THAT_ARE_NOT_OURS = {"Read"}
-# A grant we are willing to sign: python3, our plugin root, our scripts folder, one of our own scripts. No `..`,
-# no second path, nothing that ends in a shell.
-GRANT = re.compile(r"^Bash\(python3 \$\{CLAUDE_PLUGIN_ROOT\}/scripts/([a-z_]+\.py) \*\)$")
+# A grant we are willing to sign: the step-0 launcher in our plugin root (sh for the Bash tool, its PowerShell twin
+# for the PowerShell tool), one of our own scripts. No `..`, no second path, nothing that ends in a shell.
+GRANT = re.compile(r'^(?:Bash\(sh "\$\{CLAUDE_PLUGIN_ROOT\}/hooks/python\.sh"'
+                   r'|PowerShell\(& "\$\{CLAUDE_PLUGIN_ROOT\}/hooks/python\.ps1")'
+                   r' chasecall say scripts/([a-z_]+\.py) \*\)$')
 
 if os.path.join(ROOT, "scripts") not in sys.path:
     sys.path.insert(0, os.path.join(ROOT, "scripts"))
@@ -62,10 +64,10 @@ def frontmatter(name):
 
 
 def tools_in(value):
-    """The tools a frontmatter line really names: the `Bash(...)` grants with their spaces and brackets, and
-    then every bare word that is left over."""
-    grants = re.findall(r"Bash\([^)]*\)", value)
-    rest = re.sub(r"Bash\([^)]*\)", " ", value)
+    """The tools a frontmatter line really names: the `Bash(...)` and `PowerShell(...)` grants with their spaces
+    and brackets, and then every bare word that is left over."""
+    grants = re.findall(r"\w+\([^)]*\)", value)
+    rest = re.sub(r"\w+\([^)]*\)", " ", value)
     return grants + [word for word in re.split(r"[\s,]+", rest) if word]
 
 
@@ -498,7 +500,8 @@ class TheCallCardThatWasPromisedBeforeItExisted(unittest.TestCase):
         hold in their hand."""
         head = frontmatter("handoff")
         self.assertEqual(tools_in(head["allowed-tools"]),
-                         ["Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py *)", "Read"])
+                         ['Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py *)',
+                          'PowerShell(& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" chasecall say scripts/tracker.py *)', "Read"])
         self.assertLess(len(read("skills", "handoff", "SKILL.md").splitlines()), 180)
         self.assertNotIn("interpreter", head["name"])
         self.assertIn("interpreter", head["description"], "the skill has to fire when the call is in Portuguese")
