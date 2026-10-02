@@ -1,6 +1,6 @@
 ---
 name: handoff
-description: Write the script for the part only the user can do - a phone call or a payment - and keep the task alive afterwards. Gives who to call, the number, the three sentences to say, what to get out of it and what to write down; or the amount, where to pay it and what to check first. For a call in a language the user barely has, builds the call card: whether recording is allowed there, the phrases, the likely questions, and how to ask for an interpreter. Use when a task needs a voice or money, or when the user says "I have to call them", "what do I say", "I do not speak the language", "мне надо позвонить", "что им сказать", "я не говорю на их языке", "как попросить переводчика".
+description: Write the script for the part only the user can do - a phone call or a payment - and keep the task alive afterwards. Gives who to call, the number, the three sentences to say, what to get out of it and what to write down; or the amount, where to pay it and what to check first. For a call in a language the user barely has, builds the call card: whether recording is allowed there, the phrases, the likely questions, and how to ask for an interpreter. Use when a task needs a voice or money, or when the user says "I have to call them", "what do I say", "I do not speak the language", "how do I ask for an interpreter" (or the equivalent in whatever language they are using).
 argument-hint: "[task id, or a few words about the task]"
 allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py *) Read
 ---

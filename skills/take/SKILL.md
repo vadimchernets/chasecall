@@ -1,6 +1,6 @@
 ---
 name: take
-description: Take on a task that has to be chased until it is done - a refund, a booking, an unanswered request, a document nobody sends. Writes down what counts as done, adds it to the Chasecall tracker, and does the first step now: drafts the message and shows it to the user, who decides whether it goes out. Use when the user says "chase this for me", "get them to ...", "займись этим", "добейся".
+description: Take on a task that has to be chased until it is done - a refund, a booking, an unanswered request, a document nobody sends. Writes down what counts as done, adds it to the Chasecall tracker, and does the first step now: drafts the message and shows it to the user, who decides whether it goes out. Use when the user says "chase this for me", "get them to ..." (or the equivalent in whatever language they are using).
 argument-hint: "<what you want done, in your own words>"
 allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py *) Read
 ---
@@ -104,12 +104,12 @@ Nothing more. The user did not ask for a plan.
 
 ## What the user might say next
 
-| the user says | do |
+| the user says (in their own language) | do |
 |---|---|
-| "sent it" / «отправил» | `tracker.py log <id> sent "..."` and `tracker.py wait <id> --for 72h` |
-| "they answered ..." / «ответили…» | `tracker.py log <id> reply "<what they said>"`, then decide: next step, wait, or done |
-| "done, they refunded it" / «готово, деньги вернули» | `tracker.py done <id> --evidence "<what proves it>"` - ask for the proof if they did not give one |
-| "forget it" / «забей» | `tracker.py drop <id> "<why>"` |
+| "sent it" | `tracker.py log <id> sent "..."` and `tracker.py wait <id> --for 72h` |
+| "they answered ..." | `tracker.py log <id> reply "<what they said>"`, then decide: next step, wait, or done |
+| "done, they refunded it" | `tracker.py done <id> --evidence "<what proves it>"` - ask for the proof if they did not give one |
+| "forget it" | `tracker.py drop <id> "<why>"` |
 
 ## Never
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1 — 2026-10-02
+
+- Project language is English: comments, skill instructions, docs and default messages translated; Russian kept only as a localization (README.ru.md, per-language word tables, ru test fixtures).
+
 ## 0.1.0 — 2026-09-25 (preview)
 
 First public version.
@@ -25,9 +29,10 @@ First public version.
     simply written. And `mv ~/Desktop/notes.txt ~/Documents/ 2>/dev/null` was refused as "throwing a file away
     into /dev/null" - that `/dev/null` is the shell hiding an error message, not a destination. Redirections are
     taken off a command's arguments before `mv` and `cp` are judged by where they are really putting the file.
-  - **The person's yes is read in the words people use.** `перезапиши` and `сотри` matched nothing, because the
-    stems were the written forms (`перезапис`, `стере`); and ordinary words for changing a file - поправь,
-    исправь, edit, fix, save - were in no family at all, so "да, поправь мой список покупок" left the block
+  - **The person's yes is read in the words people use.** Conjugated Russian verb forms for "rewrite" and "wipe"
+    matched nothing, because the stems recognized were a different grammatical form; and ordinary words for
+    changing a file - edit, fix, save, and their Russian equivalents - were in no family at all, so a phrase like
+    "yes, fix my shopping list" left the block
     standing in front of the very thing that had just been asked for. Changing a file is now its own family,
     narrower than deleting: those words open the change and do not open `rm -rf ~/Documents` or `DELETE FROM`.
     A yes that names the file (`report.docx`) counts on the name alone, with no word from any list.

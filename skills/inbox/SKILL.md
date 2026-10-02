@@ -1,6 +1,6 @@
 ---
 name: inbox
-description: Sort out what the person sent themselves from the phone. They photograph a document in the street, jot a line or record twenty seconds of voice and share it into a folder both devices see (Google Drive or Dropbox); at home this turns each thing into a task, a note on an existing task, or a question. Nothing is deleted. Use when the user says "what came from my phone", "sort out the folder", "I sent myself a photo", "что там с телефона", "разбери папку", "я скинул фото".
+description: Sort out what the person sent themselves from the phone. They photograph a document in the street, jot a line or record twenty seconds of voice and share it into a folder both devices see (Google Drive or Dropbox); at home this turns each thing into a task, a note on an existing task, or a question. Nothing is deleted. Use when the user says "what came from my phone", "sort out the folder", "I sent myself a photo" (or the equivalent in whatever language they are using).
 argument-hint: "[a folder, if it is not the remembered one]"
 allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/inbox.py *) Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py *) Read
 disallowed-tools: Write Edit NotebookEdit

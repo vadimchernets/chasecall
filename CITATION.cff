@@ -1,7 +1,7 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 title: "Chasecall: a Claude Code plugin that keeps a task alive between sessions - the next letter, the count of attempts, and the point where a person has to step in"
-version: 0.1.0
+version: 0.1.1
 date-released: 2026-09-24
 license: Apache-2.0
 repository-code: "https://github.com/vadimchernets/chasecall"

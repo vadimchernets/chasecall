@@ -47,16 +47,17 @@ three phrases, asks one yes-or-no (a weekly look at what is new), and one questi
 
 ## The six things you can say
 
-Plain words work as well as the commands. Both languages work.
+Plain words work as well as the commands. Both languages work - see [README.ru.md](README.ru.md) for the
+Russian-language version of this table.
 
-| say this | in Russian | what happens |
-|---|---|---|
-| "Chase this for me: get the shop to refund the broken kettle." | «Займись этим: добейся возврата за чайник.» | The task is written down with what counts as done, and the first letter is drafted now. |
-| "What is waiting on me today?" | «Что сегодня от меня нужно?» | One screen: done yesterday, waiting for an answer, needs you, what Claude will push today. |
-| "Push everything that is overdue." | «Дожми всё, что просрочено.» | Every overdue task gets its next letter - a new angle, not "just reminding you". |
-| "I have to call them - tell me what to say." | «Мне надо позвонить - скажи, что говорить.» | Who to call, three sentences to say, what to get out of it, what to write down afterwards. |
-| "Come back to my tasks by yourself." | «Возвращайся к моим делам сам.» | After a yes, a Claude Code routine that looks at your tasks every morning while the app is open. |
-| "Done - the money is back." | «Готово - деньги вернули.» | The task closes, with the proof written next to it. Without proof it stays open. |
+| say this | what happens |
+|---|---|
+| "Chase this for me: get the shop to refund the broken kettle." | The task is written down with what counts as done, and the first letter is drafted now. |
+| "What is waiting on me today?" | One screen: done yesterday, waiting for an answer, needs you, what Claude will push today. |
+| "Push everything that is overdue." | Every overdue task gets its next letter - a new angle, not "just reminding you". |
+| "I have to call them - tell me what to say." | Who to call, three sentences to say, what to get out of it, what to write down afterwards. |
+| "Come back to my tasks by yourself." | After a yes, a Claude Code routine that looks at your tasks every morning while the app is open. |
+| "Done - the money is back." | The task closes, with the proof written next to it. Without proof it stays open. |
 
 The commands behind them, if you prefer typing: `/chasecall:take`, `/chasecall:brief`, `/chasecall:push`,
 `/chasecall:handoff`, `/chasecall:watch`, `/chasecall:scout`, `/chasecall:inbox`, and `/chasecall:setup`.
@@ -180,10 +181,11 @@ same folder, that note is safe too.
    it is a deletion, the block also asks the assistant to tell you what the thing was for and whether it is
    unfinished rather than rubbish, and to offer finishing it before deleting it: a file nothing uses is a
    question for you, not a verdict.
-3. **A yes is as wide as the words in it, and no wider.** Say it in your own words - "да, поправь список
-   покупок", "yes, edit shopping.md", "сотри старые билеты" - and the assistant writes down what you agreed to.
+3. **A yes is as wide as the words in it, and no wider.** Say it in your own words - "yes, edit shopping.md",
+   "wipe the old tickets" (the same works in Russian, or whatever language you use) - and the assistant writes
+   down what you agreed to.
    A yes about changing a file does not open a deletion; a yes that names one file is about that file. The hook
-   reads what was written down, not what was said, which is why a "да" in passing opens nothing: it names
+   reads what was written down, not what was said, which is why a bare "yes" in passing opens nothing: it names
    nothing.
 4. **Three attempts, then a person.** After the third push on one channel, the task is handed back to you instead
    of getting a fourth letter. Changing channel is a decision you see.

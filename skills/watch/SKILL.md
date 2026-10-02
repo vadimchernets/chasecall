@@ -1,6 +1,6 @@
 ---
 name: watch
-description: Set up Claude Code's own routine so Chasecall comes back to the chased tasks by itself - every morning, or every few hours - without anyone touching a terminal. Explains honestly what a routine can and cannot do, and sets nothing up without an explicit yes. Use when the user says "watch my tasks", "check on this every morning", "следи сам", "проверяй мои дела каждое утро".
+description: Set up Claude Code's own routine so Chasecall comes back to the chased tasks by itself - every morning, or every few hours - without anyone touching a terminal. Explains honestly what a routine can and cannot do, and sets nothing up without an explicit yes. Use when the user says "watch my tasks", "check on this every morning" (or the equivalent in whatever language they are using).
 argument-hint: "[on | off | how often]"
 allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/routine.py *) Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py *)
 ---

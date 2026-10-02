@@ -1,7 +1,7 @@
 {
   "name": "chasecall",
   "description": "Give Claude Code a task that has to be chased - a refund, a booking, an unanswered request - and it keeps the task between sessions: it writes the next letter, counts the attempts, brings you one brief a day, and asks you to step in for the call or the payment. No keys, no accounts, nothing sent without your yes.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": {
     "name": "Vadym Chernets"
   },

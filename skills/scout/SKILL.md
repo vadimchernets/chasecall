@@ -1,6 +1,6 @@
 ---
 name: scout
-description: Once a week, go out and see what is new in agent work - new things Claude Code can do, new plugins, open projects - compare it with how this person actually works, and offer at most three improvements in plain words. Installs nothing without a yes. Use when the user says "what is new", "anything new I should use", "что нового", "есть что-нибудь получше", or when the weekly "Look at what is new" task comes up in the brief.
+description: Once a week, go out and see what is new in agent work - new things Claude Code can do, new plugins, open projects - compare it with how this person actually works, and offer at most three improvements in plain words. Installs nothing without a yes. Use when the user says "what is new", "anything new I should use" (or the equivalent in whatever language they are using), or when the weekly "Look at what is new" task comes up in the brief.
 argument-hint: "[what you are curious about, e.g. e-mail, phone, reminders]"
 allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py *) Read
 ---
@@ -13,8 +13,8 @@ Tools get better every month; the person using them does not hear about it. Once
 bring back at most three things that would change **their** week. Not news. Not a list of what exists.
 
 Run this when the user asks for it, or when the standing weekly task setup created comes up as due — it is named
-in the user's own language ("Посмотреть, что нового" / "Look at what is new") — but only if
-there is real work to talk about. Not more than once a week.
+in the user's own language ("Look at what is new", translated, by default) — but only if there is real work to
+talk about. Not more than once a week.
 
 ## 0. Is it worth their quota?
 
@@ -117,8 +117,8 @@ marked `--standing`, so waiting does not
 count as a failed attempt and it never escalates. A week with nothing worth their minute goes into the log, not onto
 their screen — tell them only if they asked.
 
-**Switching it off is one sentence.** "Stop looking for new things" / «не ищи, что нового» → `tracker.py drop <id>
-"the person asked to stop"`, and do not offer it again. Switching it back on is the same one sentence.
+**Switching it off is one sentence.** "Stop looking for new things" (in the user's own language) → `tracker.py
+drop <id> "the person asked to stop"`, and do not offer it again. Switching it back on is the same one sentence.
 
 ## Never
 

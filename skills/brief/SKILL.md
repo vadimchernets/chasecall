@@ -1,6 +1,6 @@
 ---
 name: brief
-description: One screen of where every chased task stands - done in the last day, waiting for an answer with the date of the next step, needs the user, and what Chasecall will push today. Use when the user asks "what is waiting on me", "how are my tasks", "brief me", "что сегодня от меня нужно", "как там мои дела".
+description: One screen of where every chased task stands - done in the last day, waiting for an answer with the date of the next step, needs the user, and what Chasecall will push today. Use when the user asks "what is waiting on me", "how are my tasks", "brief me" (or the equivalent in whatever language they are using).
 argument-hint: "[ru|en]"
 allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/brief.py *) Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/inbox.py *)
 ---
@@ -12,10 +12,10 @@ The user said: $ARGUMENTS
 ## 1. Print it
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/brief.py --lang ru
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/brief.py --lang en
 ```
 
-Use `--lang ru` when the user writes in Russian, `--lang en` otherwise, or whatever `$ARGUMENTS` names. The script
+Use `--lang en` by default, `--lang ru` when the user writes in Russian, or whatever `$ARGUMENTS` names. The script
 prints four blocks: **done in the last day · waiting for an answer (with the date of the next step) · needs you ·
 I will take these today**.
 
@@ -31,7 +31,7 @@ If a phone folder is set (`inbox.py folder --get`), the same brief can be left t
 it in the street:
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/brief.py --lang ru --to "<folder>"
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/brief.py --lang en --to "<folder>"
 ```
 
 **The first time, the script writes nothing and hands you a question instead.** That is deliberate. The brief
@@ -39,10 +39,11 @@ carries the titles of their tasks, who they are dealing with, phone numbers and 
 synced to Google Drive or Dropbox, so the file leaves this computer. "Nothing leaves your computer that you did
 not send yourself" is the promise on the front page; it stays true only if this one is asked.
 
-Put the script's question to them in their own words, once, and wait for a real answer:
+Put the script's question to them in their own language, once, and wait for a real answer:
 
-> "Я могу класть эту сводку в ту папку файлом, чтобы вы читали её с телефона. В ней названия ваших дел, с кем вы
-> их ведёте, телефоны и заметки. Эта папка уходит в ваше облако - значит, и файл уедет туда. Класть?"
+> "I can leave this brief in that folder as a file, so you can read it on your phone. It has the names of your
+> tasks in it, who you are chasing, the phone numbers and the notes. That folder goes to your cloud, so the file
+> goes there too. Shall I?"
 
 - **Yes** → run the same command again with `--agreed`. The answer is remembered for that folder; you never ask
   a second time.
@@ -53,7 +54,8 @@ After that, say nothing about it at all - unless the script says it could not wr
 either way, so read the exit status: 0 means the file is in their folder, 3 means it is not** and the line on
 stderr says why (nobody has said yes yet, they said no, the folder has not synced, or the name is taken).
 
-One case it will report: there is already a `brief.txt` or `сводка.txt` in that folder that is **not ours** -
+One case it will report: there is already a `brief.txt` (or its Russian-language name, `сводка.txt`) in that
+folder that is **not ours** -
 not ours meaning it does not carry our own mark inside it, whatever we may have written at that path before.
 The person deletes our brief and leaves their own note under the same name; that note is theirs. Never work
 around it. Say what it found, ask whose file that is, and leave it exactly where it is.
@@ -72,8 +74,9 @@ Offer at most one next step, and only when there is a real one:
 
 - something is overdue → "Want me to push the three overdue ones?" (the `push` skill)
 - something needs a call or a payment → "Want the script for that call?" (the `handoff` skill)
-- the standing weekly task ("Посмотреть, что нового" / "Look at what is new") is due → "Shall I have a look at
-  what is new this week?" (the `scout` skill). It is a reminder, not a chase: never write to anyone about it.
+- the standing weekly task ("Look at what is new", or its translation into the user's own language) is due →
+  "Shall I have a look at what is new this week?" (the `scout` skill). It is a reminder, not a chase: never write
+  to anyone about it.
 - nothing at all → say so and stop
 
 Do not push, do not re-run the brief in the same turn, and do not start writing letters because the brief showed
