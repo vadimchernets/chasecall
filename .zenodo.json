@@ -1,0 +1,19 @@
+{
+  "title": "Chasecall: keep a task that must be chased between sessions",
+  "description": "Chasecall is a Claude Code plugin for a task that has to be chased - a refund, a booking, an unanswered request. It keeps the task between sessions: it writes the next letter, counts the attempts, brings the person one brief a day, and asks them to step in for the call or the payment. No keys, no accounts, nothing sent without the person's yes.",
+  "creators": [
+    {
+      "name": "Chernets, Vadym"
+    }
+  ],
+  "upload_type": "software",
+  "license": "apache-2.0",
+  "keywords": [
+    "claude-code-plugin",
+    "follow-up",
+    "tracker",
+    "reminders",
+    "assistant",
+    "non-programmer"
+  ]
+}
