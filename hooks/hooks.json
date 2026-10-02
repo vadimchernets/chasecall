@@ -1,5 +1,5 @@
 {
-  "description": "Chasecall hooks. On session start, quietly show what is overdue. Before any Bash command, stop anything irreversible - sending, paying, deleting, cancelling - unless the user approved it in the last 15 minutes. Reading is never blocked.",
+  "description": "Chasecall hooks. On session start, quietly show what is overdue. Before any Bash command, stop anything irreversible - sending, paying, deleting, cancelling - unless the user approved it in the last 15 minutes. Reading is never blocked. Every hook goes through hooks/python.sh (step 0 guard): it runs only with a real Python 3 and otherwise does nothing - no Apple install window mid-lesson on a Mac without Command Line Tools, no Microsoft Store stub on Windows; the session start says so in one line.",
   "hooks": {
     "SessionStart": [
       {
@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py\" due --brief",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/python.sh\" chasecall say \"${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py\" due --brief",
             "timeout": 10
           }
         ]
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/guard.py\"",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/python.sh\" chasecall quiet \"${CLAUDE_PLUGIN_ROOT}/scripts/guard.py\"",
             "timeout": 10
           }
         ]
