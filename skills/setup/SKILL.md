@@ -2,10 +2,22 @@
 name: setup
 description: First run of Chasecall. Creates the task file, says in three phrases what the user can ask for, checks whether background work is possible on this computer, and takes the first task if there is one. Run /chasecall:setup once after installing.
 disable-model-invocation: true
-allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py *) Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/inbox.py *)
+allowed-tools: Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py *) PowerShell(& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" chasecall say scripts/tracker.py *) Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/inbox.py *) PowerShell(& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" chasecall say scripts/inbox.py *)
 ---
 
 # Chasecall setup
+
+## Running chasecall's scripts (Mac, Linux, Windows)
+
+Every script command on this page is written for the **Bash** tool and starts with
+`sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/…`. If your shell tool is **PowerShell** (Windows
+without Git Bash), run the same command with only its start changed: `& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1"`
+in place of `sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh"`, everything after it unchanged, on one line; text for
+standard input goes in as `@'…'@ | & "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" …` instead of `<<'EOF'`.
+Never call `python3`, `python` or `py` yourself: the launcher finds a real Python 3.8+ (`python`,
+then `py -3`, then `python3`) and never starts the Microsoft Store or Apple stub. If it answers
+with one line saying chasecall "is paused" because this computer has no working Python 3 yet, tell the
+person that in one plain line and go on by hand — never show them a Python error and stop.
 
 You are setting up a tool for someone who is not a programmer and does not want to open a terminal. Speak
 plainly, in their own language, whichever that is. Never show raw JSON or a stack trace; say what happened in
@@ -16,7 +28,7 @@ Scripts live in `${CLAUDE_PLUGIN_ROOT}/scripts/`. Nothing here needs a key, an a
 ## 1. Make the task file
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py stats
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py stats
 ```
 
 This creates `~/.claude/chasecall/chasecall.db` if it is not there and prints what is in it (on a first run:
@@ -75,7 +87,7 @@ Ask it once, in their own words:
 **Yes, and they give the path:**
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/inbox.py folder --set "<path>" --lang ru
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/inbox.py folder --set "<path>" --lang ru
 ```
 
 Then one sentence and nothing more: "Put a photo or a note in there from the street, and I will sort it out when
@@ -105,7 +117,7 @@ On a yes, make it a task like any other, so the brief reminds you - **with the t
 language**, because it will appear in their brief as a line they did not write themselves:
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py add "Look at what is new" --goal "Three things at most that would change this person's own tasks, or an honest nothing" --channel web --every 7d --standing
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py add "Look at what is new" --goal "Three things at most that would change this person's own tasks, or an honest nothing" --channel web --every 7d --standing
 ```
 
 Translate the title and the goal into the user's own language before running the command, so the line reads

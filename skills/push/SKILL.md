@@ -2,17 +2,29 @@
 name: push
 description: Go through the Chasecall tasks that are due, and write the next step for each one - a new letter with a new angle, not "just reminding you". Updates the tracker, and when the three attempts are used up, hands the task to the user instead of writing a fourth time. Use when the user says "push everything", "chase them again" (or the equivalent in whatever language they are using).
 argument-hint: "[a task id or a few words, to push just that one]"
-allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py *) Read
+allowed-tools: Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py *) PowerShell(& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" chasecall say scripts/tracker.py *) Read
 ---
 
 # Chasecall: push what is due
+
+## Running chasecall's scripts (Mac, Linux, Windows)
+
+Every script command on this page is written for the **Bash** tool and starts with
+`sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/…`. If your shell tool is **PowerShell** (Windows
+without Git Bash), run the same command with only its start changed: `& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1"`
+in place of `sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh"`, everything after it unchanged, on one line; text for
+standard input goes in as `@'…'@ | & "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" …` instead of `<<'EOF'`.
+Never call `python3`, `python` or `py` yourself: the launcher finds a real Python 3.8+ (`python`,
+then `py -3`, then `python3`) and never starts the Microsoft Store or Apple stub. If it answers
+with one line saying chasecall "is paused" because this computer has no working Python 3 yet, tell the
+person that in one plain line and go on by hand — never show them a Python error and stop.
 
 The user said: $ARGUMENTS
 
 ## 1. What is due
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py due
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py due
 ```
 
 It prints what is overdue and what it suggests doing next, and it marks the tasks whose attempts are used up.
@@ -28,7 +40,7 @@ If `$ARGUMENTS` names one task, work on that one only; use `tracker.py list --st
 ## 2. For each task, read before you write
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py show <id>
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py show <id>
 ```
 
 Read the goal, the number of attempts and every event already logged. The next message must not repeat the last
@@ -62,8 +74,8 @@ can say "send the first two, drop the third".
 After a message is actually out:
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py log <id> sent "<one line: to whom, what angle>"
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py wait <id> --for 72h
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py log <id> sent "<one line: to whom, what angle>"
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py wait <id> --for 72h
 ```
 
 `wait` counts the attempt and sets the next step. If the user sends it themselves - the normal case - wait until
@@ -81,7 +93,7 @@ up a new address, a domain or a mailing service to push harder.
 Instead:
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py human <id> "<exactly what the user has to do>"
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py human <id> "<exactly what the user has to do>"
 ```
 
 Say it plainly: "Three letters, no answer. This one needs your voice: call them. Want the script?" - then the

@@ -2,10 +2,22 @@
 name: scout
 description: Once a week, go out and see what is new in agent work - new things Claude Code can do, new plugins, open projects - compare it with how this person actually works, and offer at most three improvements in plain words. Installs nothing without a yes. Use when the user says "what is new", "anything new I should use" (or the equivalent in whatever language they are using), or when the weekly "Look at what is new" task comes up in the brief.
 argument-hint: "[what you are curious about, e.g. e-mail, phone, reminders]"
-allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py *) Read
+allowed-tools: Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py *) PowerShell(& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" chasecall say scripts/tracker.py *) Read
 ---
 
 # Chasecall: what is new out there
+
+## Running chasecall's scripts (Mac, Linux, Windows)
+
+Every script command on this page is written for the **Bash** tool and starts with
+`sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/…`. If your shell tool is **PowerShell** (Windows
+without Git Bash), run the same command with only its start changed: `& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1"`
+in place of `sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh"`, everything after it unchanged, on one line; text for
+standard input goes in as `@'…'@ | & "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" …` instead of `<<'EOF'`.
+Never call `python3`, `python` or `py` yourself: the launcher finds a real Python 3.8+ (`python`,
+then `py -3`, then `python3`) and never starts the Microsoft Store or Apple stub. If it answers
+with one line saying chasecall "is paused" because this computer has no working Python 3 yet, tell the
+person that in one plain line and go on by hand — never show them a Python error and stop.
 
 The user said: $ARGUMENTS
 
@@ -21,8 +33,8 @@ talk about. Not more than once a week.
 Every look costs the person's own subscription. Before searching anything:
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py stats --json
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py list --state all --json
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py stats --json
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py list --state all --json
 ```
 
 Go on only if the person has been working this week: some task was added, moved, answered or closed in the last
@@ -31,7 +43,7 @@ seven days (`updated_at` inside seven days, or `done_7d` above zero), or they as
 Nothing moved in seven days? **Say nothing and search nothing.** Push the standing task on quietly and stop:
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py wait <id> --for 7d
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py wait <id> --for 7d
 ```
 
 An empty "nothing new this week" into a quiet week is worse than silence: it spends the quota and the person's
@@ -40,8 +52,8 @@ patience for nothing. The look wakes up by itself when they come back to work.
 ## 1. Start from how they actually work
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py stats
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py list --state all
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py stats
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py list --state all
 ```
 
 Look for the friction, not the totals: which channel is used most, where tasks sit for weeks, what keeps landing
@@ -108,8 +120,8 @@ did not ask for.
 ## 5. Write down that you looked
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py log <id> note "<one line: what was found, what was installed>"
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py wait <id> --for 7d
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py log <id> note "<one line: what was found, what was installed>"
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py wait <id> --for 7d
 ```
 
 `<id>` is the standing weekly task that setup created, under whatever name it has in the user's language; it is

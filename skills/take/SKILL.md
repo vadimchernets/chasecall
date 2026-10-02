@@ -2,10 +2,22 @@
 name: take
 description: Take on a task that has to be chased until it is done - a refund, a booking, an unanswered request, a document nobody sends. Writes down what counts as done, adds it to the Chasecall tracker, and does the first step now: drafts the message and shows it to the user, who decides whether it goes out. Use when the user says "chase this for me", "get them to ..." (or the equivalent in whatever language they are using).
 argument-hint: "<what you want done, in your own words>"
-allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py *) Read
+allowed-tools: Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py *) PowerShell(& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" chasecall say scripts/tracker.py *) Read
 ---
 
 # Chasecall: take a task
+
+## Running chasecall's scripts (Mac, Linux, Windows)
+
+Every script command on this page is written for the **Bash** tool and starts with
+`sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/…`. If your shell tool is **PowerShell** (Windows
+without Git Bash), run the same command with only its start changed: `& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1"`
+in place of `sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh"`, everything after it unchanged, on one line; text for
+standard input goes in as `@'…'@ | & "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" …` instead of `<<'EOF'`.
+Never call `python3`, `python` or `py` yourself: the launcher finds a real Python 3.8+ (`python`,
+then `py -3`, then `python3`) and never starts the Microsoft Store or Apple stub. If it answers
+with one line saying chasecall "is paused" because this computer has no working Python 3 yet, tell the
+person that in one plain line and go on by hand — never show them a Python error and stop.
 
 The user said: $ARGUMENTS
 
@@ -44,7 +56,7 @@ form, every 7 days for a person.
 ## 2. Write it down
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py add "<title>" --goal "<what counts as done>" --channel <email|phone|web|person|other> --counterpart "<who>" --every 3d --first-step-now
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py add "<title>" --goal "<what counts as done>" --channel <email|phone|web|person|other> --counterpart "<who>" --every 3d --first-step-now
 ```
 
 `--first-step-now` means the first step is due immediately. Note the task id the script prints; you need it below.
@@ -76,7 +88,7 @@ Three honest ways, in this order:
 Before any of 2 or 3:
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py log <id> approved "user said yes to sending the first message"
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py log <id> approved "user said yes to sending the first message"
 ```
 
 The safety hook blocks the send if that line is missing. Never set up a mailing service, a new address or a
@@ -86,8 +98,8 @@ send, path 1 always works.
 Once it has actually gone out:
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py log <id> sent "first message to <counterpart>: <one line>"
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py wait <id> --for 72h
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py log <id> sent "first message to <counterpart>: <one line>"
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py wait <id> --for 72h
 ```
 
 **Channel `phone`:** you do not call. Go to the `handoff` skill: it writes the script for the user to say, and

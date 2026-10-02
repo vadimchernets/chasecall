@@ -2,10 +2,22 @@
 name: watch
 description: Set up Claude Code's own routine so Chasecall comes back to the chased tasks by itself - every morning, or every few hours - without anyone touching a terminal. Explains honestly what a routine can and cannot do, and sets nothing up without an explicit yes. Use when the user says "watch my tasks", "check on this every morning" (or the equivalent in whatever language they are using).
 argument-hint: "[on | off | how often]"
-allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/routine.py *) Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py *)
+allowed-tools: Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/routine.py *) PowerShell(& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" chasecall say scripts/routine.py *) Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py *) PowerShell(& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" chasecall say scripts/tracker.py *)
 ---
 
 # Chasecall: coming back by itself
+
+## Running chasecall's scripts (Mac, Linux, Windows)
+
+Every script command on this page is written for the **Bash** tool and starts with
+`sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/…`. If your shell tool is **PowerShell** (Windows
+without Git Bash), run the same command with only its start changed: `& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1"`
+in place of `sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh"`, everything after it unchanged, on one line; text for
+standard input goes in as `@'…'@ | & "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" …` instead of `<<'EOF'`.
+Never call `python3`, `python` or `py` yourself: the launcher finds a real Python 3.8+ (`python`,
+then `py -3`, then `python3`) and never starts the Microsoft Store or Apple stub. If it answers
+with one line saying chasecall "is paused" because this computer has no working Python 3 yet, tell the
+person that in one plain line and go on by hand — never show them a Python error and stop.
 
 The user said: $ARGUMENTS
 
@@ -18,7 +30,7 @@ Before promising anything, ask the machine what is actually possible here - in t
 (`ru` when they write in Russian, `en` otherwise):
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/routine.py status --lang ru
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/routine.py status --lang ru
 ```
 
 It says whether `claude` is on this computer at all, where the task file is, how many tasks are alive, when they
@@ -43,7 +55,7 @@ Ask once: "Shall we set that up?" No yes, no routine. Silence is not a yes.
 ## 2. The text for the routine
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/routine.py prompt
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/routine.py prompt
 ```
 
 It prints the prompt the routine should run. Show it to the user as it is - it is short and readable on purpose -
@@ -68,7 +80,7 @@ Finish with one line naming what now exists and when it will first run.
 because it runs outside the app:
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/routine.py windows --yes
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/routine.py windows --yes
 ```
 
 Without `--yes` the script writes nothing. That is deliberate, so nothing can appear by accident. Say what it made
@@ -84,7 +96,7 @@ and the tasks themselves are untouched - they just stop waking up on their own.
 
 A routine run is a short session with one job: look and prepare, not act.
 
-1. `python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py due`
+1. `sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py due`
 2. Nothing due, or it is night: write nothing, do nothing, end. Do not send a "nothing to report" message.
 3. Something due: draft the next step and save it as a note
    (`tracker.py log <id> note "draft ready: <one line>"`), so the next brief shows it.

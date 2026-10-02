@@ -2,17 +2,29 @@
 name: brief
 description: One screen of where every chased task stands - done in the last day, waiting for an answer with the date of the next step, needs the user, and what Chasecall will push today. Use when the user asks "what is waiting on me", "how are my tasks", "brief me" (or the equivalent in whatever language they are using).
 argument-hint: "[ru|en]"
-allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/brief.py *) Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/inbox.py *)
+allowed-tools: Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/brief.py *) PowerShell(& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" chasecall say scripts/brief.py *) Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/inbox.py *) PowerShell(& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" chasecall say scripts/inbox.py *)
 ---
 
 # Chasecall: the brief
+
+## Running chasecall's scripts (Mac, Linux, Windows)
+
+Every script command on this page is written for the **Bash** tool and starts with
+`sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/…`. If your shell tool is **PowerShell** (Windows
+without Git Bash), run the same command with only its start changed: `& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1"`
+in place of `sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh"`, everything after it unchanged, on one line; text for
+standard input goes in as `@'…'@ | & "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" …` instead of `<<'EOF'`.
+Never call `python3`, `python` or `py` yourself: the launcher finds a real Python 3.8+ (`python`,
+then `py -3`, then `python3`) and never starts the Microsoft Store or Apple stub. If it answers
+with one line saying chasecall "is paused" because this computer has no working Python 3 yet, tell the
+person that in one plain line and go on by hand — never show them a Python error and stop.
 
 The user said: $ARGUMENTS
 
 ## 1. Print it
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/brief.py --lang en
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/brief.py --lang en
 ```
 
 Use `--lang en` by default, `--lang ru` when the user writes in Russian, or whatever `$ARGUMENTS` names. The script
@@ -31,7 +43,7 @@ If a phone folder is set (`inbox.py folder --get`), the same brief can be left t
 it in the street:
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/brief.py --lang en --to "<folder>"
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/brief.py --lang en --to "<folder>"
 ```
 
 **The first time, the script writes nothing and hands you a question instead.** That is deliberate. The brief

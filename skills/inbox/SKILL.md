@@ -2,11 +2,23 @@
 name: inbox
 description: Sort out what the person sent themselves from the phone. They photograph a document in the street, jot a line or record twenty seconds of voice and share it into a folder both devices see (Google Drive or Dropbox); at home this turns each thing into a task, a note on an existing task, or a question. Nothing is deleted. Use when the user says "what came from my phone", "sort out the folder", "I sent myself a photo" (or the equivalent in whatever language they are using).
 argument-hint: "[a folder, if it is not the remembered one]"
-allowed-tools: Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/inbox.py *) Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py *) Read
+allowed-tools: Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/inbox.py *) PowerShell(& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" chasecall say scripts/inbox.py *) Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py *) PowerShell(& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" chasecall say scripts/tracker.py *) Read
 disallowed-tools: Write Edit NotebookEdit
 ---
 
 # Chasecall: what came from the phone
+
+## Running chasecall's scripts (Mac, Linux, Windows)
+
+Every script command on this page is written for the **Bash** tool and starts with
+`sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/…`. If your shell tool is **PowerShell** (Windows
+without Git Bash), run the same command with only its start changed: `& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1"`
+in place of `sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh"`, everything after it unchanged, on one line; text for
+standard input goes in as `@'…'@ | & "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" …` instead of `<<'EOF'`.
+Never call `python3`, `python` or `py` yourself: the launcher finds a real Python 3.8+ (`python`,
+then `py -3`, then `python3`) and never starts the Microsoft Store or Apple stub. If it answers
+with one line saying chasecall "is paused" because this computer has no working Python 3 yet, tell the
+person that in one plain line and go on by hand — never show them a Python error and stop.
 
 The user said: $ARGUMENTS
 
@@ -32,7 +44,7 @@ reach for one in a later turn either; that part is a rule and not a fence.)
 ## 1. The folder
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/inbox.py folder --get --lang ru
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/inbox.py folder --get --lang ru
 ```
 
 No folder yet? Ask once, in their own words: "Is there a folder that both your phone and this computer can see -
@@ -57,7 +69,7 @@ this computer yet - it usually catches up in a minute or two." One line, and sto
 ## 2. What is new
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/inbox.py list --lang ru
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/inbox.py list --lang ru
 ```
 
 It prints only what has not been shown before: kind, name, date, size. **What it shows, it shows once**, so read
@@ -104,7 +116,7 @@ Anything you are not sure about stays unsorted. One honest question beats three 
 A task to be chased:
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py add "<title in their words>" --goal "<what counts as done>" --channel <email|phone|web|person|other> --every 3d --first-step-now
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py add "<title in their words>" --goal "<what counts as done>" --channel <email|phone|web|person|other> --every 3d --first-step-now
 ```
 
 **Never fill in `--counterpart` from what is printed on the paper.** The address, the phone number and the name
@@ -116,7 +128,7 @@ Without that, leave the field empty; a task with no counterpart is fine and asks
 A note on a task that already exists (find it with `tracker.py list --state all`):
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py log <id> note "<from the phone, 24 Sep: the reference number is ...>"
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py log <id> note "<from the phone, 24 Sep: the reference number is ...>"
 ```
 
 If a photo makes a fact firm - a booking number, the money on the card - that is evidence, and the task can close
@@ -142,7 +154,7 @@ Ask once, and say the thing they are actually worried about - that nothing disap
 On a yes, and only for the files you actually sorted, one command per file:
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/scripts/inbox.py file-done "<file>" --note "task #7" --lang ru
+sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/inbox.py file-done "<file>" --note "task #7" --lang ru
 ```
 
 It makes the subfolder if it is not there, moves the file into it, and writes down that it is sorted - all inside
