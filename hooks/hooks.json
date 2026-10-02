@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "exec sh \"${CLAUDE_PLUGIN_ROOT}/hooks/python.sh\" chasecall say \"${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py\" due --brief\n& ([scriptblock]::Create((Get-Content -Raw -LiteralPath \"${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1\"))) chasecall say \"${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py\" due --brief",
+            "command": "exec sh \"${CLAUDE_PLUGIN_ROOT}/hooks/python.sh\" chasecall say \"${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py\" due --brief\ntrap { continue }; & ([scriptblock]::Create((Get-Content -Raw -LiteralPath \"${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1\"))) chasecall say \"${CLAUDE_PLUGIN_ROOT}/scripts/tracker.py\" due --brief",
             "timeout": 10
           }
         ]
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "exec sh \"${CLAUDE_PLUGIN_ROOT}/hooks/python.sh\" chasecall quiet \"${CLAUDE_PLUGIN_ROOT}/scripts/guard.py\"\n& ([scriptblock]::Create((Get-Content -Raw -LiteralPath \"${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1\"))) chasecall quiet \"${CLAUDE_PLUGIN_ROOT}/scripts/guard.py\"",
+            "command": "exec sh \"${CLAUDE_PLUGIN_ROOT}/hooks/python.sh\" chasecall quiet \"${CLAUDE_PLUGIN_ROOT}/scripts/guard.py\"\ntrap { continue }; & ([scriptblock]::Create((Get-Content -Raw -LiteralPath \"${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1\"))) chasecall quiet \"${CLAUDE_PLUGIN_ROOT}/scripts/guard.py\"",
             "timeout": 10
           }
         ]
