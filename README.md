@@ -22,11 +22,27 @@ trial: check what it writes before it goes out.
 
 ## Install
 
-One line. Type it into Claude Code, or say "install the chasecall plugin from vadimchernets/chasecall":
+Two lines. Type them into Claude Code, or say "install the chasecall plugin from poly-a1":
 
 ```
-/plugin install chasecall --marketplace vadimchernets/chasecall
+/plugin marketplace add https://raw.githubusercontent.com/vadimchernets/poly-a1-plugins/main/.claude-plugin/marketplace.json
+/plugin install chasecall@poly-a1
 ```
+
+The first line adds Poly A1's catalogue by its link - one file, no git and no GitHub account - and
+later corrections reach you from the same place (Claude Code 2.1.224 or later; `claude update`). If
+`poly-a1` is already there, from the Poly A1 folder or from before, skip it: the second line is enough.
+
+Without internet, from the Poly A1 folder:
+
+```
+/plugin marketplace add <path to the Poly A1 folder>
+/plugin install chasecall@poly-a1
+```
+
+Once there is internet, the folder is switched to the link in place, keeping everything installed
+([how](https://github.com/vadimchernets/poly-a1-plugins/blob/main/OFFER-THESE.md#later-from-the-folder-to-github-without-losing-anything)). Never `/plugin marketplace remove poly-a1`: it uninstalls every plugin that came from
+it and deletes their saved data.
 
 Then, once:
 
@@ -39,13 +55,6 @@ three phrases, asks one yes-or-no (a weekly look at what is new), and one questi
 
 **With the mouse, in the Claude app:** the **Code** tab → the **+** next to the message box → **Plugins** →
 **Add plugin**.
-
-**On Claude Code older than 2.1.275**, the one-line form does not exist yet; use the old pair:
-
-```
-/plugin marketplace add vadimchernets/chasecall
-/plugin install chasecall@chasecall
-```
 
 ## The six things you can say
 
@@ -223,7 +232,8 @@ tracker before anything leaves.
   **Plugins are not loaded in cloud sessions at all** - neither on claude.ai/code nor in a cloud session inside the
   app. If Chasecall seems to be missing, this is almost always why: you are not on your own machine.
 - Python 3.9 or newer, which macOS and Linux already have. Standard library only; nothing to install.
-- macOS or Linux. On Windows the tracker and the brief work; the Windows scheduled task is untested in v0.1.
+- macOS, Linux or Windows. On Windows the hooks run whether Claude Code uses Git Bash or PowerShell (without Git
+  for Windows), and the guard reads PowerShell commands too; the Windows scheduled task is untested in v0.1.
 - To come back by itself, Chasecall uses Claude Code's own routines (**Code → Routines**). Nothing else is
   installed, and if you never set one up, your tasks simply wake up the next time you talk.
 

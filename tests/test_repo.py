@@ -19,7 +19,12 @@ _RU = _json.loads((_Path(__file__).resolve().parent / "fixtures" / "ru" / "test_
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SKILLS = ["setup", "take", "push", "brief", "watch", "handoff", "scout", "inbox"]
 SCRIPTS = ["tracker.py", "brief.py", "guard.py", "routine.py", "inbox.py"]
-INSTALL = "/plugin install chasecall --marketplace vadimchernets/chasecall"
+# Since 02.10.2026 chasecall comes from Poly A1's catalogue, added by its raw link (no git), with the kit
+# folder as the way without internet. The old `vadimchernets/chasecall` marketplace needed git on the machine.
+CATALOGUE = ("/plugin marketplace add "
+             "https://raw.githubusercontent.com/vadimchernets/poly-a1-plugins/main/.claude-plugin/marketplace.json")
+INSTALL = "/plugin install chasecall@poly-a1"
+FOLDER = "/plugin marketplace add <"
 # The only tool we hand a skill besides our own scripts. Everything else - `Write`, `Edit`, `WebFetch` - has to
 # be argued for here first, in a test, and not slipped into a line of YAML.
 TOOLS_THAT_ARE_NOT_OURS = {"Read"}
@@ -192,10 +197,21 @@ class Files(unittest.TestCase):
                      "CITATION.cff", ".gitignore"):
             self.assertTrue(os.path.exists(os.path.join(ROOT, name)), name)
 
-    def test_readme_names_the_one_line_install(self):
+    def test_readme_names_the_install_from_the_catalogue_and_the_folder(self):
         readme = read("README.md")
-        self.assertIn(INSTALL, readme)
-        self.assertIn("/chasecall:setup", readme)
+        for line in (CATALOGUE, INSTALL, FOLDER, "/chasecall:setup"):
+            self.assertIn(line, readme)
+        self.assertEqual(readme.count(INSTALL), 2)      # once after the link, once after the folder
+
+    def test_no_readme_sends_anyone_to_the_old_git_marketplace_or_to_remove(self):
+        for name in ("README.md", "README.ru.md"):
+            text = read(name)
+            for old in ("chasecall@chasecall", "--marketplace vadimchernets/chasecall",
+                        "marketplace add vadimchernets/chasecall"):
+                self.assertNotIn(old, text, name)
+            for line in text.splitlines():
+                if line.strip().startswith("/plugin marketplace remove"):
+                    self.fail("%s tells someone to remove the catalogue: %s" % (name, line))
 
     def test_the_russian_readme_is_there_and_linked_from_the_first_line(self):
         """Half of the people this is written for read Russian and no English at all. A repository whose only
@@ -258,8 +274,9 @@ class Files(unittest.TestCase):
     def test_the_two_readmes_name_the_same_install_line(self):
         """Two install lines that drift apart make one of the two audiences type something that does not work."""
         russian = read("README.ru.md")
-        self.assertIn(INSTALL, russian)
-        self.assertEqual(read("README.md").count(INSTALL), russian.count(INSTALL))
+        for line in (CATALOGUE, INSTALL):
+            self.assertIn(line, russian)
+            self.assertEqual(read("README.md").count(line), russian.count(line))
 
     def test_nothing_promises_a_cron_line_we_no_longer_have(self):
         """The README sells the absence of cron; the code must not be one copy-and-paste away from having it."""

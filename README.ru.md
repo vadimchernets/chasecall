@@ -16,18 +16,27 @@ Chasecall — независимый проект с открытым кодом
 в чёрное окно её набирать не надо:
 
 ```
-/plugin install chasecall --marketplace vadimchernets/chasecall
+/plugin marketplace add https://raw.githubusercontent.com/vadimchernets/poly-a1-plugins/main/.claude-plugin/marketplace.json
+/plugin install chasecall@poly-a1
 ```
 
-`vadimchernets` — это имя владельца на GitHub, латиницей и без пробела; в самом плагине то же имя написано словами,
-«Vadym Chernets». Это один и тот же человек, а не два.
+Первая строка добавляет каталог Poly A1 по ссылке: это один файл, git и аккаунт GitHub не нужны, а
+исправления потом приходят оттуда же (Claude Code 2.1.224 или новее; `claude update`). Если `poly-a1`
+уже есть — из папки Poly A1 или с прошлого раза, — первую строку пропустите: хватит второй.
 
-Если Claude Code старый и строка не сработала, наберите две:
+Без интернета — из папки Poly A1:
 
 ```
-/plugin marketplace add vadimchernets/chasecall
-/plugin install chasecall@chasecall
+/plugin marketplace add <путь к папке Poly A1>
+/plugin install chasecall@poly-a1
 ```
+
+Когда интернет появится, папку переключают на ссылку на месте, ничего не теряя
+([как](https://github.com/vadimchernets/poly-a1-plugins/blob/main/OFFER-THESE.md#later-from-the-folder-to-github-without-losing-anything)). Никогда не `/plugin marketplace remove poly-a1`: так удаляются все плагины из него
+вместе с их сохранёнными данными.
+
+`vadimchernets` в ссылке — это имя владельца на GitHub, латиницей и без пробела; в самом плагине то же имя написано
+словами, «Vadym Chernets». Это один и тот же человек, а не два.
 
 Дальше — один раз, там же:
 

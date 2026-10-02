@@ -287,6 +287,36 @@ class WithoutAYes(Base):
             self.assertTrue(allow, tool)
 
 
+class PowerShellIsTheSameGate(Base):
+    """Windows without Git Bash: Claude Code's command tool is `PowerShell`, not `Bash` (02.10.2026). The person,
+    the letters and the payments are the same, so the gate is too - PowerShell's own verbs included."""
+
+    PS_IRREVERSIBLE = {
+        "a payment": "stripe charges create --amount 4000 --currency usd",
+        "Send-MailMessage": "Send-MailMessage -To support@shop.example -Subject 'Order 1182'",
+        "a mail API by Invoke-RestMethod": "Invoke-RestMethod -Method Post -Uri https://api.mailgun.net/v3/x/messages",
+        "Remove-Item of their folder": "Remove-Item -Recurse -Force ~/Documents/old-tickets",
+        "remove-item in small letters": "remove-item ~/Desktop/photo.jpg",
+        "their folder through $HOME": "Remove-Item -Recurse $HOME/Documents",
+        "their folder through $env:USERPROFILE": "Remove-Item -Recurse $env:USERPROFILE/Documents",
+        "del": "del ~/Desktop/notes.txt",
+    }
+    PS_HARMLESS = ("Get-ChildItem ~/Documents", "Get-Content ~/Desktop/notes.txt", "Remove-Item ./build.tmp",
+                   "Invoke-RestMethod https://api.github.com/repos/x/y")
+
+    def test_powershell_commands_are_judged_like_bash_ones(self):
+        for what, command in self.PS_IRREVERSIBLE.items():
+            stopped, reason = self.blocked(command, tool="PowerShell")
+            self.assertTrue(stopped, "%s: %s" % (what, command))
+        for command in self.PS_HARMLESS:
+            self.assertFalse(self.blocked(command, tool="PowerShell")[0], command)
+
+    def test_the_hook_listens_to_the_powershell_tool(self):
+        hooks = json.load(open(os.path.join(ROOT, "hooks", "hooks.json"), encoding="utf-8"))["hooks"]
+        guards = [g for g in hooks["PreToolUse"] if any("guard.py" in h["command"] for h in g["hooks"])]
+        self.assertEqual([g["matcher"] for g in guards], ["Bash|PowerShell"])
+
+
 class NothingDiesQuietly(Base):
     """A task cannot be abandoned without a why (`drop`) or closed without evidence (`done`) - and until now a
     file could go without either. The refusal for the delete family asks for the same two things before the

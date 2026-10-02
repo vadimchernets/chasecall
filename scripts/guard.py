@@ -38,7 +38,9 @@ if HERE not in sys.path:
 import tracker  # noqa: E402
 
 APPROVAL_WINDOW_S = 15 * 60
-COMMAND_TOOLS = ("bash", "shell", "run_command")
+# `powershell` is Claude Code's own command tool on Windows without Git Bash (02.10.2026): the same person, the
+# same letters and payments, only another shell - so the same gate, with its verbs below beside the sh ones.
+COMMAND_TOOLS = ("bash", "shell", "run_command", "powershell")
 
 # A first word that only ever reads. Checked as the first word of a segment - never as a substring, or
 # `rm -rf ~/Documents/old # tracker.py` would talk its way through.
@@ -65,11 +67,13 @@ SPLIT_RE = re.compile(r"\|\||&&|[;\n&]|(?<!>)\||\$\(|`")
 SHELL_OPERATORS = {";", "&&", "||", "|", "&", ">", ">>", "<", "<<", "2>", "2>>", "&>"}
 ASSIGN_RE = re.compile(r"(?:^|[;&|]\s*)([A-Za-z_][A-Za-z0-9_]*)=([^\s;&|]*)")
 ASSIGNMENT_HEAD = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
+PS_VERB_NOUN = re.compile(r"^[A-Za-z]+-[A-Za-z]+$")
+HOME_WORD = re.compile(r"^(?:\$\{?HOME\}?|\$env:(?:HOME|USERPROFILE)|\$\{env:(?:HOME|USERPROFILE)\}|%USERPROFILE%|%HOMEPATH%)(?=$|[/\\])", re.I)
 
-DELETE_BINS = {"rm", "rmdir", "unlink", "shred", "srm"}
-MAIL_BINS = {"sendmail", "mailx", "mail", "msmtp", "mutt", "neomutt", "swaks", "s-nail", "postfix"}
+DELETE_BINS = {"rm", "rmdir", "unlink", "shred", "srm", "remove-item", "del", "erase", "ri", "rd"}
+MAIL_BINS = {"sendmail", "mailx", "mail", "msmtp", "mutt", "neomutt", "swaks", "s-nail", "postfix", "send-mailmessage"}
 MONEY_BINS = {"stripe", "pay", "paypal", "braintree"}
-NET_BINS = {"curl", "wget", "http", "httpie"}
+NET_BINS = {"curl", "wget", "http", "httpie", "invoke-webrequest", "invoke-restmethod", "iwr", "irm"}
 # Scratch files are the machine's own; the person's files are not.
 TEMP_PREFIXES = ("/tmp/", "/private/tmp/", "/var/tmp/", "/var/folders/", "/private/var/folders/", "/dev/")
 
@@ -81,7 +85,7 @@ MONEY_URL = re.compile(r"https?://\S*(?:checkout|payment|/pay\b|billing|invoice|
 CANCEL_WORD = re.compile(r"\b(?:cancel|unsubscribe)\b", re.I)
 CANCEL_URL = re.compile(r"https?://\S*(?:cancel|unsubscribe)", re.I)
 NETWORK_WRITE = re.compile(r"-X\s*(?:POST|PUT|PATCH|DELETE)|--data\b|--data-\w+|\s-d\s|--form\b|\s-F\s|"
-                           r"\bwget\b[\s\S]*--post", re.I)
+                           r"\bwget\b[\s\S]*--post|-Method\s+['\"]?(?:POST|PUT|PATCH|DELETE)\b|\s-Body\b|\s-Form\b", re.I)
 SQL_DELETE = re.compile(r"\bdelete\s+from\b|\bdrop\s+(?:table|database)\b", re.I)
 PIPE_TO_SHELL = re.compile(r"\|\s*(?:sudo\s+)?(?:sh|bash|zsh|ksh|dash|python3?|perl|ruby|node)\b", re.I)
 # A redirection that empties one of the person's files, in the forms a shell really accepts: `>`, `>>`, a file
@@ -187,7 +191,10 @@ def first_token(segment):
         tokens.pop(0)
     if not tokens:
         return "", []
-    return os.path.basename(tokens[0].strip("()`\"'")), tokens[1:]
+    name = os.path.basename(tokens[0].strip("()`\"'"))
+    if PS_VERB_NOUN.match(name):
+        name = name.lower()                       # PowerShell: `Remove-Item` and `remove-item` are one command
+    return name, tokens[1:]
 
 
 def arguments(rest):
@@ -245,6 +252,7 @@ def absolute(target):
     raw = str(target).strip().strip("'\"")
     if not raw:
         return ""
+    raw = HOME_WORD.sub("~", raw)                 # `$HOME/x`, `$env:USERPROFILE\x`, `%USERPROFILE%\x` are `~/x`
     path = os.path.expanduser(raw)
     if not os.path.isabs(path):
         path = os.path.join(os.path.normpath(os.getcwd()), path)
