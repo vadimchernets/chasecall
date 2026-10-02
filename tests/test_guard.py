@@ -407,11 +407,12 @@ class OurScriptsThroughTheLauncher(Base):
         "sh /x/hooks/python.sh chasecall say scripts/inbox.py file-done 'note\" ; rm -rf ~ ; \"x.txt' --lang ru",
         '& "C:\\Users\\Anna\\.claude\\plugins\\chasecall\\hooks\\python.ps1" chasecall say scripts/tracker.py log 3 note "sent via mailgun"',
         '& "/x/hooks/python.ps1" chasecall say scripts/brief.py --lang ru',
+        'C:/Users/Anna/.claude/plugins/chasecall/hooks/python.ps1 chasecall say scripts/tracker.py log 3 note "via mailgun"',
     )
 
     def test_the_launcher_runs_our_scripts_unjudged(self):
         for line in self.LINES:
-            tool = "PowerShell" if line.startswith("&") else "Bash"
+            tool = "Bash" if line.startswith("sh ") else "PowerShell"
             self.assertFalse(self.blocked(line, tool=tool)[0], line)
 
     def test_but_the_launcher_does_not_vouch_for_someone_elses_script(self):
@@ -423,8 +424,8 @@ class OurScriptsThroughTheLauncher(Base):
         _, bash_reason = self.blocked("rm ~/Desktop/photo.jpg")
         _, ps_reason = self.blocked("Remove-Item ~/Desktop/photo.jpg", tool="PowerShell")
         self.assertIn("hooks/python.sh\" chasecall say", bash_reason)
-        self.assertIn("python.ps1\" chasecall say", ps_reason)
-        self.assertTrue(ps_reason.split("approved")[0].rstrip().endswith("log <id>") or "& \"" in ps_reason)
+        # PowerShell: the bare path the skills' grant matches (`& "..."` only when the path has a space)
+        self.assertRegex(ps_reason, r'hooks/python\.ps1"? chasecall say scripts/tracker\.py')
         for reason in (bash_reason, ps_reason):
             self.assertNotIn("python3 ", reason)
 

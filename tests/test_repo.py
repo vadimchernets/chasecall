@@ -31,7 +31,7 @@ TOOLS_THAT_ARE_NOT_OURS = {"Read"}
 # A grant we are willing to sign: the step-0 launcher in our plugin root (sh for the Bash tool, its PowerShell twin
 # for the PowerShell tool), one of our own scripts. No `..`, no second path, nothing that ends in a shell.
 GRANT = re.compile(r'^(?:Bash\(sh "\$\{CLAUDE_PLUGIN_ROOT\}/hooks/python\.sh"'
-                   r'|PowerShell\(& "\$\{CLAUDE_PLUGIN_ROOT\}/hooks/python\.ps1")'
+                   r'|PowerShell\(\$\{CLAUDE_PLUGIN_ROOT\}/hooks/python\.ps1)'
                    r' chasecall say scripts/([a-z_]+\.py) \*\)$')
 
 if os.path.join(ROOT, "scripts") not in sys.path:
@@ -501,7 +501,7 @@ class TheCallCardThatWasPromisedBeforeItExisted(unittest.TestCase):
         head = frontmatter("handoff")
         self.assertEqual(tools_in(head["allowed-tools"]),
                          ['Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py *)',
-                          'PowerShell(& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" chasecall say scripts/tracker.py *)', "Read"])
+                          'PowerShell(${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1 chasecall say scripts/tracker.py *)', "Read"])
         self.assertLess(len(read("skills", "handoff", "SKILL.md").splitlines()), 180)
         self.assertNotIn("interpreter", head["name"])
         self.assertIn("interpreter", head["description"], "the skill has to fire when the call is in Portuguese")

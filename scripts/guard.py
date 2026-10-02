@@ -606,11 +606,12 @@ def approvals(now=None, window_s=APPROVAL_WINDOW_S, path=None):
 def tracker_command(tool=""):
     """How the session runs tracker.py from here: through the step-0 launcher, which finds a real Python 3 on
     every system (`python3` is often missing on Windows, or is the Microsoft Store stub) - in the shell it has."""
-    root = os.path.dirname(HERE)
+    root = os.path.dirname(HERE).replace("\\", "/")
     if str(tool).split("__")[-1].strip().lower() == "powershell":
-        return '& "%s" chasecall say "%s"' % (os.path.join(root, "hooks", "python.ps1"), os.path.join(HERE, "tracker.py"))
-    return 'sh "%s" chasecall say "%s"' % (os.path.join(root, "hooks", "python.sh").replace("\\", "/"),
-                                           os.path.join(HERE, "tracker.py").replace("\\", "/"))
+        # The bare path is what the skills' PowerShell grant matches; `& "..."` is only for a path with a space.
+        launcher = "%s/hooks/python.ps1" % root
+        return ('& "%s"' % launcher if " " in launcher else launcher) + " chasecall say scripts/tracker.py"
+    return 'sh "%s/hooks/python.sh" chasecall say scripts/tracker.py' % root
 
 
 def reason_text(family, what, command, near_miss=None, names=(), tool=""):

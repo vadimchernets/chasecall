@@ -2,7 +2,7 @@
 name: scout
 description: Once a week, go out and see what is new in agent work - new things Claude Code can do, new plugins, open projects - compare it with how this person actually works, and offer at most three improvements in plain words. Installs nothing without a yes. Use when the user says "what is new", "anything new I should use" (or the equivalent in whatever language they are using), or when the weekly "Look at what is new" task comes up in the brief.
 argument-hint: "[what you are curious about, e.g. e-mail, phone, reminders]"
-allowed-tools: Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py *) PowerShell(& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" chasecall say scripts/tracker.py *) Read
+allowed-tools: Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py *) PowerShell(${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1 chasecall say scripts/tracker.py *) Read
 ---
 
 # Chasecall: what is new out there
@@ -11,9 +11,11 @@ allowed-tools: Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scr
 
 Every script command on this page is written for the **Bash** tool and starts with
 `sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/…`. If your shell tool is **PowerShell** (Windows
-without Git Bash), run the same command with only its start changed: `& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1"`
-in place of `sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh"`, everything after it unchanged, on one line; text for
-standard input goes in as `@'…'@ | & "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" …` instead of `<<'EOF'`.
+without Git Bash), only the start changes: write the launcher's path bare, with no quotes and no `&`
+— `${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1 chasecall say scripts/…` — and keep the rest, on one line; that is the
+form this skill's permission covers. Only if that path has a space in it, write
+`& "${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1" …` instead (the person is then asked once). Text for standard input:
+`@'…'@ | ${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1 …` (`| & "…"` if the path has a space) instead of `<<'EOF'` — also asked once.
 Never call `python3`, `python` or `py` yourself: the launcher finds a real Python 3.8+ (`python`,
 then `py -3`, then `python3`) and never starts the Microsoft Store or Apple stub. If it answers
 with one line saying chasecall "is paused" because this computer has no working Python 3 yet, tell the
