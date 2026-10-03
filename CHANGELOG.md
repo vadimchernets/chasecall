@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.7 — 2026-10-03
+
+- Wording: no disclaimers. Every page and message speaks as a finished product: README "What it does not do" is
+  now "What stays in your hands" (your voice, your mailbox, your card, the close on evidence), the guard section
+  says what it reads instead of what it misses, the handoff skill drops the regulatory justification for not
+  placing calls, the macOS routine note says what runs instead of why launchd is avoided, CONTRIBUTING and the
+  step-0 line ("it starts working the moment this computer has Python 3") lose "for now". Guard logic is
+  unchanged. `tests/test_no_disclaimers.py` scans every README, skill, language file, hook, script and plugin
+  description for stop phrases ("for now", "honestly", "unfortunately", "not legal advice", "own risk", their
+  Russian and Ukrainian forms) so they do not come back.
+
 ## 0.1.6 — 2026-10-02
 
 - On Windows the step-0 launcher (`hooks/python.ps1`, and `hooks/python.sh` in Git Bash) also finds a Python installed

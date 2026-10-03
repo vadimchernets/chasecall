@@ -20,6 +20,6 @@ Claude Code itself, or in the mail, banking or booking services a task involves,
 ## What Chasecall holds
 
 One SQLite file, `~/.claude/chasecall/chasecall.db` (or wherever `CHASECALL_DB` points): your tasks, who you are
-chasing, what was written and when. It is not encrypted and it is as private as your home folder. The scripts use
+chasing, what was written and when. It is a plain file, as private as your home folder. The scripts use
 the Python standard library only and never open a network connection. Chasecall has no account, no key and no
 password of yours to lose.

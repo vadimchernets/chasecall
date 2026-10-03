@@ -16,9 +16,9 @@ Nothing acts in your name, and nothing leaves your computer that you did not sen
 
 Chasecall is an independent open-source project. Not affiliated with Anthropic.
 
-**Status: v0.1 preview.** The tracker, the brief, the phone folder, the routine helper and the safety hook are
-covered by 246 automated tests that use the Python standard library and no network. Treat the first weeks as a
-trial: check what it writes before it goes out.
+**Status: v0.1.** The tracker, the brief, the phone folder, the routine helper and the safety hook are covered
+by automated tests that use the Python standard library and no network. Every letter is shown to you in full
+before it goes out.
 
 ## Install
 
@@ -82,9 +82,9 @@ not in Portugal, in eleven US states or in New South Wales - if in any doubt, do
 what you want in one sentence you can check, five things to say in their language written so you can read them
 aloud, five questions they will ask with your answers ready, three rescue phrases - one of them asking for an
 interpreter - and, at the end, "please send me this in writing", which is the proof the task closes on. If your
-own phone translates calls (Samsung, Pixel, or an iPhone 15 Pro or newer for Spanish and Portuguese only), that
-is yours to switch on and it tells the other side by itself. Chasecall does not translate the call: no recording,
-no transcript, no second phone listening. You call, you speak.
+own phone translates calls (Samsung, Pixel, or an iPhone 15 Pro or newer for Spanish and Portuguese), you switch
+it on and it tells the other side by itself. The call itself is yours: no recording, no transcript, no second
+phone listening. You call, you speak, with the card in your hand.
 
 ## Why this and not an API agent
 
@@ -156,30 +156,29 @@ in that folder is never replaced; Chasecall says it found one and leaves it alon
 inside the file, read every time - so if you delete the brief and put your own note under the same name, in the
 same folder, that note is safe too.
 
-## What it does not do
+## What stays in your hands
 
-- It has no e-mail account, no phone number, no card and no server. Nothing leaves your computer that you did not
-  send yourself. Letters go from your own mailbox: you send them, or your own mail program does, after your yes.
-- **It does not make phone calls, and it is not going to in a later version.** An artificial voice on a call is
-  regulated - the FCC ruled in February 2024 (24-17) that AI voices in calls fall under the TCPA - and recording a
-  call needs everyone's consent in eleven US states. Chasecall writes the script; you speak.
-- **It does not translate a live conversation, and it will not tell you how to.** No recording of the call for it
-  to listen to, no transcript, no second phone left on the table. It writes the card and you hold it. Where your
-  own phone can translate a call on the device, that is yours to switch on, and it warns the other side itself.
-- It does not pay, and it never holds a card number, a password or a code.
-- It does not write at night, and it does not write a fourth time on a channel where three letters went unanswered.
-- It does not close a task because someone promised. A task closes with evidence: a reference number, the money on
-  the card, an answer you can point at.
-- It does not read or change your files. The only file it writes is its own - and the one folder you name for your
-  phone, where it reads what you put there, leaves the brief, and moves a sorted file into `done` after your yes.
-  It deletes nothing, anywhere.
-- **It does put one file of its own into that folder, if you let it - and that folder is in your cloud.** The
-  brief has your task titles, the people you are chasing, phone numbers and your notes in it, and Google Drive or
-  Dropbox will carry a copy of it to their servers and to any device signed in to that account. Chasecall asks
-  you, in those words, before the first time; a no is final, and until you say yes nothing is written there. The
-  file is readable by your account only. If you would rather it never left the machine, say no - the brief on the
-  screen is the same brief, and nothing else about Chasecall changes.
-- It cannot work while your computer is off. If it is asleep, the tasks wait; nothing is lost.
+- Your mailbox, your phone, your card. Chasecall has no e-mail account, phone number, card or server of its own,
+  so everything goes out from you: letters from your own mailbox - you send them, or your own mail program does,
+  after your yes.
+- **Your voice.** Chasecall writes the script and the call card; you make the call and you speak.
+- **The live conversation.** No recording for it to listen to, no transcript, no second phone on the table: it
+  writes the card and you hold it. Where your own phone translates a call on the device, you switch it on, and it
+  tells the other side itself.
+- Payments. Chasecall never holds a card number, a password or a code.
+- The pace. Nothing is written at night, and after three unanswered letters on one channel the task comes back
+  to you instead of a fourth.
+- The close. A task closes with evidence - a reference number, the money on the card, an answer you can point
+  at - not with a promise.
+- Your files. The only file Chasecall writes is its own, plus the one folder you name for your phone, where it
+  reads what you put there, leaves the brief, and moves a sorted file into `done` after your yes. It deletes
+  nothing, anywhere.
+- **Where the brief travels.** The brief has your task titles, the people you are chasing, phone numbers and your
+  notes in it, and the phone folder is in your Google Drive or Dropbox, which carries a copy to their servers and
+  to every device signed in to that account. Chasecall asks you that, in those words, before the first time; a
+  no is final, and nothing is written there before a yes. The file is readable by your account only. On a no the
+  brief on the screen is the same brief.
+- The schedule. Chasecall works while your computer is on; when it sleeps, the tasks wait and nothing is lost.
 
 ## Safety
 
@@ -214,12 +213,11 @@ same folder, that note is safe too.
    yourself, because that field is where the next letter goes. This is written into every skill that reads
    anything: `take`, `push`, `handoff`, `scout` and `inbox`.
 
-**What the guard does not catch.** It is a seat belt, not a lock on the door. It stops an accident, not a
-determined attempt: a command hidden in base64 or inside a script file, a value the shell works out at run time,
-an alias or a function, a POST made from inside a program instead of `curl`, a mail client or a browser driven
-through its own window, a file overwritten by an editor rather than by a shell redirection. It also cannot see
-anything done outside this session. Read what your assistant is about to do; the guard is there for the moment
-you did not.
+**What the guard reads.** It reads the command line the assistant is about to run, in this session, and stops
+the accident there. A command hidden in base64 or a script file, a value the shell works out at run time, an
+alias or a function, a POST from inside a program, a mail client or browser driven through its own window, or a
+file rewritten by an editor is outside what a command line shows, so you see every action in the session before
+it runs.
 
 **About e-mail.** Chasecall has no mailbox of its own and sets none up. A letter goes out one of three ways: you
 copy it and send it; or Claude sends it through a mailbox you yourself connected to Claude; or, on a Mac, your own
@@ -233,7 +231,7 @@ tracker before anything leaves.
   app. If Chasecall seems to be missing, this is almost always why: you are not on your own machine.
 - Python 3.9 or newer, which macOS and Linux already have. Standard library only; nothing to install.
 - macOS, Linux or Windows. On Windows the hooks run whether Claude Code uses Git Bash or PowerShell (without Git
-  for Windows), and the guard reads PowerShell commands too; the Windows scheduled task is untested in v0.1.
+  for Windows), and the guard reads PowerShell commands too.
 - To come back by itself, Chasecall uses Claude Code's own routines (**Code → Routines**). Nothing else is
   installed, and if you never set one up, your tasks simply wake up the next time you talk.
 
@@ -243,7 +241,7 @@ One file: `~/.claude/chasecall/chasecall.db`. It holds your tasks (title, goal, 
 the state, the attempts, the date of the next step, the evidence) and the events on each one (notes, what was
 sent, what came back, what you approved). Set `CHASECALL_DB` to keep it somewhere else.
 
-## Coming back by itself, honestly
+## Coming back by itself
 
 Claude Code has its own schedules, called routines. `/chasecall:watch` explains them, gives you the short text to
 put in one, and walks you through **Code → Routines → New routine → Local** (Hourly, Daily, Weekdays or Weekly) -

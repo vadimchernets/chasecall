@@ -26,12 +26,11 @@ deletion, a yes about changing a file does not open `rm -rf`, and a yes that nam
 file. The narrower the words the session writes down, the less it has asked the person for. Reading is never
 blocked, and neither is writing a file that is not there yet - making a note destroys nothing.
 
-WHAT THIS GATE DOES NOT CATCH - it is a guard against an accident, not against a determined attempt. Anyone who
-wants past it can walk past it: a command hidden in base64 or in a script file, a value the shell resolves at run
-time beyond a plain `VAR=value` on the same line, an alias or a function, a POST from a language runtime instead
-of curl, a mail client or a browser driven through its own interface, a file overwritten by an editor rather than
-by a shell redirection. It also cannot see anything done outside this session. Treat it as the seat belt, not as
-the lock on the door.
+WHAT THIS GATE READS - the command line of this session, where an accident shows. Outside what a command line
+shows: a command hidden in base64 or in a script file, a value the shell resolves at run time beyond a plain
+`VAR=value` on the same line, an alias or a function, a POST from a language runtime instead of curl, a mail
+client or a browser driven through its own interface, a file overwritten by an editor rather than by a shell
+redirection, and anything done outside this session.
 """
 import json
 import os

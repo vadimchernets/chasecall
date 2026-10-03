@@ -77,7 +77,7 @@
   "routine": {
     "how_to": "El fondo ya existe en el propio Claude Code, y es el que funciona:\n  1. Abra la aplicacion Claude -> la pestana Code.\n  2. Routines -> New routine -> Local.\n  3. Elija la frecuencia: Hourly / Daily / Weekdays / Weekly.\n  4. Pegue el prompt de `routine.py prompt` y guarde.\nFunciona mientras la aplicacion esta abierta y el ordenador despierto; una ejecucion perdida se recupera despues.\nTambien puede simplemente decir en el chat: \"revisa mis tareas cada manana a las nueve\".",
     "no_claude": "No veo `claude` en el PATH, asi que no voy a configurar una ejecucion de fondo - sus tareas revivirán en su proxima sesion, y no se pierde nada.",
-    "mac_no_install": "En macOS no instalo nada por mi cuenta: una tarea de fondo puesta con launchd es cortada por la proteccion de privacidad del sistema en cuanto toca sus archivos, y usted creeria que le estan ayudando cuando no es asi. Use la Routine de arriba - esa si funciona de verdad.",
+    "mac_no_install": "En macOS el fondo es la Routine de arriba: corre dentro de la app de Claude, donde sus archivos estan a su alcance. No instalo nada por mi cuenta - la Routine es la que corre.",
     "labels": {
       "head": "chasecall, trabajo de fondo - %s",
       "claude": "claude en PATH:  ",

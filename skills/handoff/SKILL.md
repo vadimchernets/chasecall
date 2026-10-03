@@ -18,7 +18,7 @@ form this skill's permission covers. Only if that path has a space in it, write
 `@'…'@ | ${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1 …` (`| & "…"` if the path has a space) instead of `<<'EOF'` — also asked once.
 Never call `python3`, `python` or `py` yourself: the launcher finds a real Python 3.8+ (`python`,
 then `py -3`, then `python3`) and never starts the Microsoft Store or Apple stub. If it answers
-with one line saying chasecall "is paused" because this computer has no working Python 3 yet, tell the
+with one line saying chasecall "is paused" until this computer has Python 3, tell the
 person that in one plain line and go on by hand — never show them a Python error and stop.
 
 The user said: $ARGUMENTS
@@ -26,10 +26,9 @@ The user said: $ARGUMENTS
 Chasecall has no phone number and no card. When a task needs a voice or money, the user does it and Chasecall
 writes the script, holds the task, and records the result. Say that plainly once, without apologising for it.
 
-This is not a missing feature. An artificial voice on a call is regulated - in the United States the FCC ruled in
-February 2024 (24-17) that AI-generated voices in calls fall under the TCPA - and recording a call needs everyone's
-consent in eleven US states. Chasecall will not place calls in a later version either. If the user asks for it, say
-so in one sentence and hand them the script.
+That is the design: the user's voice carries the call, and Chasecall makes sure they walk into it with every
+word ready. If the user asks Chasecall to make the call, say in one sentence that the call is theirs and hand them
+the script.
 
 _The examples on this page are invented: names, numbers and companies in them are not real._
 

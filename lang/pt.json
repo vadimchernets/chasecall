@@ -77,7 +77,7 @@
   "routine": {
     "how_to": "O plano de fundo ja existe no proprio Claude Code, e e o que funciona:\n  1. Abra o aplicativo Claude -> a aba Code.\n  2. Routines -> New routine -> Local.\n  3. Escolha a frequencia: Hourly / Daily / Weekdays / Weekly.\n  4. Cole o prompt de `routine.py prompt` e salve.\nFunciona enquanto o aplicativo esta aberto e o computador esta ativo; uma execucao perdida e recuperada depois.\nTambem pode simplesmente dizer no chat: \"verifique minhas tarefas toda manha as nove\".",
     "no_claude": "Nao vejo `claude` no PATH, entao nao vou configurar uma execucao em segundo plano - suas tarefas voltarao a vida na sua proxima sessao, e nada se perde.",
-    "mac_no_install": "No macOS eu nao instalo nada por conta propria: uma tarefa em segundo plano feita com launchd e cortada pela protecao de privacidade do sistema assim que toca seus arquivos, e voce pensaria que esta sendo ajudado quando nao esta. Use a Routine acima - ela funciona de verdade.",
+    "mac_no_install": "No macOS o segundo plano e a Routine acima: ela roda dentro do app do Claude, onde seus arquivos estao ao alcance. Nao instalo nada por conta propria - a Routine e a que roda.",
     "labels": {
       "head": "chasecall, trabalho em segundo plano - %s",
       "claude": "claude no PATH:  ",

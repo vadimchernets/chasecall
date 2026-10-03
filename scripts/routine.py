@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Coming back to a task by itself - honestly, with what the machine actually has.
+"""Coming back to a task by itself, with what the machine actually has.
 
 Product rule this file defends: we promise the person only what will really happen. On macOS we do NOT install a
 launchd agent: a background job started that way is stopped by TCC the moment it touches Desktop or Documents
@@ -7,7 +7,7 @@ launchd agent: a background job started that way is stopped by TCC the moment it
 Claude Code already has a background of its own - Code tab -> Routines -> New routine -> Local (Hourly / Daily /
 Weekdays / Weekly), or simply saying in the chat "check my tasks every morning at nine". It runs while the app is
 open and the machine is awake, and one missed run is caught up. So this script does not install anything on a Mac:
-it hands the person the exact prompt to paste, and says out loud what it cannot do.
+it hands the person the exact prompt to paste, and says plainly how the routine runs.
 
 - `routine.py status`  - can we do a background at all: is `claude` in PATH, where the database is, when the tasks
                          were last swept, and how to switch the Routine on (`--lang ru|en`).
@@ -237,7 +237,7 @@ def build_parser():
     common.add_argument("--json", action="store_true", default=argparse.SUPPRESS)
     common.add_argument("--lang", choices=list(LANGS), default=argparse.SUPPRESS)
     parser = argparse.ArgumentParser(prog="routine.py",
-                                     description="chasecall background: honest about what runs")
+                                     description="chasecall background: what runs, and when")
     parser.add_argument("--json", action="store_true")
     parser.add_argument("--lang", choices=list(LANGS), default=os.environ.get("CHASECALL_LANG", "en"))
     sub = parser.add_subparsers(dest="command", required=True)

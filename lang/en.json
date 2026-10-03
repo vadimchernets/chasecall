@@ -77,7 +77,7 @@
   "routine": {
     "how_to": "Background is already in Claude Code, and it is the one that works:\n  1. Open the Claude app -> the Code tab.\n  2. Routines -> New routine -> Local.\n  3. Pick how often: Hourly / Daily / Weekdays / Weekly.\n  4. Paste the prompt from `routine.py prompt` and save.\nIt runs while the app is open and the computer is awake; one missed run is caught up afterwards.\nYou can also just say in the chat: \"check my tasks every morning at nine\".",
     "no_claude": "I do not see `claude` in PATH, so I will not set up a background run - your tasks will come back to life in your next session, and nothing is lost.",
-    "mac_no_install": "On macOS I install nothing by myself: a background job put in with launchd is cut off by the system's privacy protection the moment it touches your files, and you would think you were being helped when you were not. Use the Routine above - it really runs.",
+    "mac_no_install": "On macOS the background is the Routine above: it runs inside the Claude app, where your files are open to it. I install nothing by myself - the Routine is the one that runs.",
     "labels": {
       "head": "chasecall background - %s",
       "claude": "claude in PATH: ",

@@ -18,7 +18,7 @@ form this skill's permission covers. Only if that path has a space in it, write
 `@'…'@ | ${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1 …` (`| & "…"` if the path has a space) instead of `<<'EOF'` — also asked once.
 Never call `python3`, `python` or `py` yourself: the launcher finds a real Python 3.8+ (`python`,
 then `py -3`, then `python3`) and never starts the Microsoft Store or Apple stub. If it answers
-with one line saying chasecall "is paused" because this computer has no working Python 3 yet, tell the
+with one line saying chasecall "is paused" until this computer has Python 3, tell the
 person that in one plain line and go on by hand — never show them a Python error and stop.
 
 You are setting up a tool for someone who is not a programmer and does not want to open a terminal. Speak
@@ -49,8 +49,7 @@ Show exactly these three, translated into the user's own language, and nothing l
 | "What is waiting on me today?" | One screen: done, waiting for an answer, needs you, what I will push today. |
 | "Push everything that is overdue." | I go through the overdue tasks and write the next message for each one. |
 
-Then one honest sentence: "I write the letters and keep the count. You press send, you make the calls, you pay.
-I never do those for you."
+Then one sentence: "I write the letters and keep the count. You press send, you make the calls, you pay."
 
 ## 3. One line about coming back by itself
 

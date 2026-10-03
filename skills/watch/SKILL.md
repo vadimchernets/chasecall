@@ -1,6 +1,6 @@
 ---
 name: watch
-description: Set up Claude Code's own routine so Chasecall comes back to the chased tasks by itself - every morning, or every few hours - without anyone touching a terminal. Explains honestly what a routine can and cannot do, and sets nothing up without an explicit yes. Use when the user says "watch my tasks", "check on this every morning" (or the equivalent in whatever language they are using).
+description: Set up Claude Code's own routine so Chasecall comes back to the chased tasks by itself - every morning, or every few hours - without anyone touching a terminal. Says plainly when a routine runs, and sets nothing up without an explicit yes. Use when the user says "watch my tasks", "check on this every morning" (or the equivalent in whatever language they are using).
 argument-hint: "[on | off | how often]"
 allowed-tools: Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/routine.py *) PowerShell(${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1 chasecall say scripts/routine.py *) Bash(sh "${CLAUDE_PLUGIN_ROOT}/hooks/python.sh" chasecall say scripts/tracker.py *) PowerShell(${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1 chasecall say scripts/tracker.py *)
 ---
@@ -18,7 +18,7 @@ form this skill's permission covers. Only if that path has a space in it, write
 `@'…'@ | ${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1 …` (`| & "…"` if the path has a space) instead of `<<'EOF'` — also asked once.
 Never call `python3`, `python` or `py` yourself: the launcher finds a real Python 3.8+ (`python`,
 then `py -3`, then `python3`) and never starts the Microsoft Store or Apple stub. If it answers
-with one line saying chasecall "is paused" because this computer has no working Python 3 yet, tell the
+with one line saying chasecall "is paused" until this computer has Python 3, tell the
 person that in one plain line and go on by hand — never show them a Python error and stop.
 
 The user said: $ARGUMENTS
@@ -45,7 +45,7 @@ Then, in two sentences:
 > next letters ready when you come back. Nothing is sent, nobody is called, nothing is paid without you: it only
 > prepares."
 
-Then the limits, honestly, before asking anything:
+Then when it runs, in plain words, before asking anything:
 
 > - It runs **while the Claude app is open and the computer is awake**. Closed or asleep: nothing runs. A missed
 >   run is caught up once, not one for every hour that passed.
@@ -65,7 +65,7 @@ and do not rewrite it.
 
 ## 3. Set it up
 
-Ask how often, and offer the honest default: **every weekday morning**. Hourly is too much for tasks that move in
+Ask how often, and offer the default: **every weekday morning**. Hourly is too much for tasks that move in
 days.
 
 Two ways, both fine:

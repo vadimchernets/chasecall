@@ -18,7 +18,7 @@ form this skill's permission covers. Only if that path has a space in it, write
 `@'…'@ | ${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1 …` (`| & "…"` if the path has a space) instead of `<<'EOF'` — also asked once.
 Never call `python3`, `python` or `py` yourself: the launcher finds a real Python 3.8+ (`python`,
 then `py -3`, then `python3`) and never starts the Microsoft Store or Apple stub. If it answers
-with one line saying chasecall "is paused" because this computer has no working Python 3 yet, tell the
+with one line saying chasecall "is paused" until this computer has Python 3, tell the
 person that in one plain line and go on by hand — never show them a Python error and stop.
 
 The user said: $ARGUMENTS
@@ -78,7 +78,7 @@ sends.
 ### How the letter actually goes out
 
 You write the draft. It leaves this computer only from the user's own mailbox, and only after an explicit yes.
-Three honest ways, in this order:
+Three ways, in this order:
 
 1. **The user sends it.** The normal case, and never wrong: "Copy this and send it; tell me when it is out."
 2. **Claude's own connectors**, if the user has connected Gmail or another mailbox to Claude. Say which one you

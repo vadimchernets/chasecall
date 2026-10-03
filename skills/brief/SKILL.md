@@ -18,7 +18,7 @@ form this skill's permission covers. Only if that path has a space in it, write
 `@'…'@ | ${CLAUDE_PLUGIN_ROOT}/hooks/python.ps1 …` (`| & "…"` if the path has a space) instead of `<<'EOF'` — also asked once.
 Never call `python3`, `python` or `py` yourself: the launcher finds a real Python 3.8+ (`python`,
 then `py -3`, then `python3`) and never starts the Microsoft Store or Apple stub. If it answers
-with one line saying chasecall "is paused" because this computer has no working Python 3 yet, tell the
+with one line saying chasecall "is paused" until this computer has Python 3, tell the
 person that in one plain line and go on by hand — never show them a Python error and stop.
 
 The user said: $ARGUMENTS
@@ -62,7 +62,7 @@ Put the script's question to them in their own language, once, and wait for a re
 - **Yes** → run the same command again with `--agreed`. The answer is remembered for that folder; you never ask
   a second time.
 - **No** → run it with `--declined`. That is remembered too, so nobody is pestered about it again.
-- **Anything unclear** → treat it as a no for now and move on. Silence is not a yes.
+- **Anything unclear** → treat it as a no this time and move on. Silence is not a yes.
 
 After that, say nothing about it at all - unless the script says it could not write. **The screen is the same
 either way, so read the exit status: 0 means the file is in their folder, 3 means it is not** and the line on
