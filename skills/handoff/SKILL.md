@@ -109,7 +109,7 @@ on and stop there: we do not set it up, and the card is written as if it were no
 
 ## 2b. A payment: what and where, then stop
 
-> **Amount:** 2 400 RUB, one payment, not a subscription.
+> **Amount:** $30, one payment, not a subscription.
 > **Where:** on their site, the link in their letter of the 7th - check that the address really is `example.com`
 > before you type anything.
 > **Check first:** the amount matches the invoice; there is no second charge already on the card; the refund
