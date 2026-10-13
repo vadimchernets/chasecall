@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.9 — 2026-10-13
+
+- Changelog wording only: the 0.1.8 note names the currency guard without its file name. No skill changes.
+
 ## 0.1.8 — 2026-10-13
 
 - Example amounts in US dollars (Poly A1 has no ties to Russia; its currency guard test in poly-a1
