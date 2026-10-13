@@ -2,7 +2,7 @@
 
 ## 0.1.8 — 2026-10-13
 
-- Example amounts in dollars, not rubles (Poly A1 has no ties to Russia; its guard __tests__/no-rubles.test.ts
+- Example amounts in US dollars (Poly A1 has no ties to Russia; its currency guard test in poly-a1
   now scans this plugin's sources).
 
 ## 0.1.7 — 2026-10-03
