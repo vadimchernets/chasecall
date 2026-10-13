@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.8 — 2026-10-13
+
+- Example amounts in dollars, not rubles (Poly A1 has no ties to Russia; its guard __tests__/no-rubles.test.ts
+  now scans this plugin's sources).
+
 ## 0.1.7 — 2026-10-03
 
 - Wording: no disclaimers. Every page and message speaks as a finished product: README "What it does not do" is
