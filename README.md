@@ -1,5 +1,7 @@
 Languages: English · [Русский](README.ru.md)
 
+> Poly helped? [Give it a star on GitHub](https://github.com/vadimchernets/chasecall) - one click. The plugin is open to everyone either way.
+
 # Chasecall
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23107733.svg)](https://doi.org/10.5281/zenodo.23107733)
