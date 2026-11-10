@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.10 — 2026-11-10
+
+- README only: the catalogue is added from its release file (https://github.com/vadimchernets/poly-a1-plugins/releases/latest/download/marketplace.json), so every install counts as a download of the release; the raw address stays as the fallback. A line asks for a star. No skill changes.
+
 ## 0.1.9 — 2026-10-13
 
 - Changelog wording only: the 0.1.8 note names the currency guard without its file name. No skill changes.

@@ -27,9 +27,11 @@ before it goes out.
 Two lines. Type them into Claude Code, or say "install the chasecall plugin from poly-a1":
 
 ```
-/plugin marketplace add https://raw.githubusercontent.com/vadimchernets/poly-a1-plugins/main/.claude-plugin/marketplace.json
+/plugin marketplace add https://github.com/vadimchernets/poly-a1-plugins/releases/latest/download/marketplace.json
 /plugin install chasecall@poly-a1
 ```
+
+If that address does not answer, the same file is at `https://raw.githubusercontent.com/vadimchernets/poly-a1-plugins/main/.claude-plugin/marketplace.json`.
 
 The first line adds Poly A1's catalogue by its link - one file, no git and no GitHub account - and
 later corrections reach you from the same place (Claude Code 2.1.224 or later; `claude update`). If
